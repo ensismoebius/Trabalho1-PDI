@@ -20,10 +20,12 @@ class ImageCanvas: public Gtk::DrawingArea {
 
 	protected:
 		cv::Mat imageFrame;
-		bool videoCapturingActive;
 		cv::VideoCapture cameraCapturer;
 
 		unsigned char mediaType;
+		bool videoCapturingActive;
+
+		//void (*callbackFunction)(double* signal, int signalLength, unsigned int samplingRate, std::string path);
 
 		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cairoContextPtr) {
 
@@ -70,7 +72,6 @@ class ImageCanvas: public Gtk::DrawingArea {
 				}
 			}
 		}
-		//virtual ~VideoCanvas();
 };
 
 #endif /* SRC_IMAGECANVAS_CPP_ */
