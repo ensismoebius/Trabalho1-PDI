@@ -19,29 +19,26 @@ class ImageCanvas: public Gtk::DrawingArea {
 		inline static const unsigned char TYPE_VIDEO = 1;
 
 	protected:
-		cv::Mat image;
+		cv::Mat inputImage;
+		cv::Mat outputImage;
+
 		cv::VideoCapture cameraCapturer;
 
 		unsigned char mediaType;
 		bool videoCapturingActive;
 
-		//void (*callbackFunction)(double* signal, int signalLength, unsigned int samplingRate, std::string path);
-
 		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cairoContextPtr) {
 
 			if (this->mediaType == TYPE_VIDEO) {
 				if (!videoCapturingActive) return false;
-				cameraCapturer.read(image);
-			}
-			if (this->mediaType == TYPE_IMAGE) {
-				// FIXME do something or delete ?
+				cameraCapturer.read(inputImage);
 			}
 
-			if (image.empty()) return false;
+			if (inputImage.empty()) return false;
 
-			cv::cvtColor(image, image, CV_BGR2RGB);
+			cv::cvtColor(inputImage, outputImage, CV_BGR2RGB);
 
-			Gdk::Cairo::set_source_pixbuf(cairoContextPtr, Gdk::Pixbuf::create_from_data(image.data, Gdk::COLORSPACE_RGB, false, 8, image.cols, image.rows, image.step));
+			Gdk::Cairo::set_source_pixbuf(cairoContextPtr, Gdk::Pixbuf::create_from_data(outputImage.data, Gdk::COLORSPACE_RGB, false, 8, outputImage.cols, outputImage.rows, outputImage.step));
 
 			cairoContextPtr->paint();
 
@@ -57,9 +54,9 @@ class ImageCanvas: public Gtk::DrawingArea {
 		}
 	public:
 
-		ImageCanvas(cv::Mat& image, unsigned char mediaType = TYPE_IMAGE) {
+		ImageCanvas(cv::Mat& image, const unsigned char mediaType = TYPE_IMAGE) {
 
-			this->image = image;
+			this->inputImage = image;
 			this->mediaType = mediaType;
 
 			if (mediaType == TYPE_VIDEO) {

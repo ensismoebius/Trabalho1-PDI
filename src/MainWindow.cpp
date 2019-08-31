@@ -41,7 +41,6 @@ class MainWindow: public Gtk::Window {
 				return;
 			}
 
-//			*processedImage = cv::imread(imagePath, 1);
 			*processedImage = image->clone();
 			processedImageArea = new ImageCanvas(*image, ImageCanvas::TYPE_IMAGE);
 			processedImageArea->set_tooltip_text("Processed image");
