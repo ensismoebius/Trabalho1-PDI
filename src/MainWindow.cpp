@@ -17,6 +17,7 @@ class MainWindow: public Gtk::Window {
 		ImageCanvas* processedImageArea;
 
 		Gtk::Box box;
+		Gtk::Button applyFilter;
 
 		void createOriginalImageCanvas(char* imagePath = 0) {
 			image = new cv::Mat();
@@ -42,13 +43,13 @@ class MainWindow: public Gtk::Window {
 			}
 
 			*processedImage = image->clone();
-			processedImageArea = new ImageCanvas(*image, ImageCanvas::TYPE_IMAGE);
+			processedImageArea = new ImageCanvas(*processedImage, ImageCanvas::TYPE_IMAGE);
 			processedImageArea->set_tooltip_text("Processed image");
 		}
 
 	public:
 		MainWindow(char* imagePath) :
-				box(Gtk::ORIENTATION_VERTICAL, 2) {
+				box(Gtk::ORIENTATION_VERTICAL, 2), applyFilter("_Apply filter") {
 			set_title("OpenCV with GTK and Video");
 			set_border_width(10);
 
@@ -70,12 +71,46 @@ class MainWindow: public Gtk::Window {
 			processedFrame.set_vexpand(true);
 			processedFrame.add(*processedImageArea);
 
-			this->box.add(processedFrame);
 			this->box.add(originalFrame);
+			this->box.add(processedFrame);
+			this->box.add(applyFilter);
+
+			this->applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::changeColors));
 
 			this->box.show();
 			add(this->box);
 			show_all();
+
+		}
+
+		void changeColors() {
+
+//			static int c = 50;
+//
+//			cv::Vec3b color;
+//			color.val[0] = 0;
+//			color.val[1] = 255;
+//			color.val[2] = 0;
+
+//			for (int row = 0; row < image->rows; row++) {
+//				for (int col = 0; col < image->cols; col++) {
+//					//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
+//					image->at<cv::Vec3b>(row, col) = color;
+//				}
+//			}
+//			for (int row = 0; row < image->rows; row++) {
+//				for (int col = 0; col < c; col++) {
+//					//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
+//					processedImage->at<cv::Vec3b>(row, col) = color;
+//				}
+//			}
+//			c += 2;
+
+			cv::GaussianBlur(*image, *processedImage, cv::Size(0, 0), 20);
+
+			processedImageArea->queue_draw();
+
+			std::cout << "Image processed" << std::endl;
 		}
 
 		MainWindow() :
