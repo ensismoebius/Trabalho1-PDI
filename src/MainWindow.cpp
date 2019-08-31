@@ -49,7 +49,8 @@ class MainWindow: public Gtk::Window {
 
 	public:
 		MainWindow(char* imagePath) :
-				box(Gtk::ORIENTATION_VERTICAL, 2), applyFilter("_Apply filter") {
+				box(Gtk::ORIENTATION_VERTICAL, 2), applyFilter("_Apply filter", true) {
+
 			set_title("OpenCV with GTK and Video");
 			set_border_width(10);
 
@@ -75,15 +76,14 @@ class MainWindow: public Gtk::Window {
 			this->box.add(processedFrame);
 			this->box.add(applyFilter);
 
-			this->applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::changeColors));
+			this->applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::filterMethod));
 
 			this->box.show();
 			add(this->box);
 			show_all();
-
 		}
 
-		void changeColors() {
+		void filterMethod() {
 
 //			static int c = 50;
 //
@@ -106,7 +106,7 @@ class MainWindow: public Gtk::Window {
 //			}
 //			c += 2;
 
-			cv::GaussianBlur(*image, *processedImage, cv::Size(0, 0), 20);
+			cv::GaussianBlur(*image, *processedImage, cv::Size(0, 0), 1);
 
 			processedImageArea->queue_draw();
 
