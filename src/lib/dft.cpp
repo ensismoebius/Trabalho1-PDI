@@ -13,7 +13,7 @@
 #include <vector>
 #include <iostream>
 
-//#include <opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 //void genDiscreteFourierTransformSpectrum(cv::Mat src, cv::Mat dst) {
 //
@@ -76,6 +76,85 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
 		// goto the next value
 		k++;
 	}
+}
+
+void dft2(cv::Mat input, std::vector<std::vector<std::array<double, 2>>>& output) {
+
+	/**
+	 * Number of lines
+	 */
+	unsigned int M = 0;
+
+	/**
+	 * Number of items at each line
+	 */
+	unsigned int N = 0;
+
+	/**
+	 * The index of the current line being transformed
+	 */
+	unsigned int k = 0;
+
+	/**
+	 * The index of the current value in the line being transformed
+	 */
+	unsigned int j = 0;
+
+	/**
+	 * The index of the current line being transformed
+	 */
+	unsigned int u = 0;
+
+	/**
+	 * The index of the current value in the line being transformed
+	 */
+	unsigned int v = 0;
+
+	/**
+	 * The current value being transformed
+	 */
+	double xmn = 0;
+
+	/**
+	 * Sum of the real parts
+	 */
+	double sumReal = 0;
+
+	/**
+	 * Sum of the complex parts
+	 */
+	double sumComplex = 0;
+
+	while (u < M) {
+		while (v < N) {
+
+			//	for (int row = 0; row < image.rows; row++) {
+			//		for (int col = 0; col < image.cols; col++) {
+			//			//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
+			//			image.at<cv::Vec3b>(row, col) = color;
+			//		}
+			//	}
+
+			for (unsigned int x = 0; x < M; ++x) {
+				for (unsigned int y = 0; y < N; ++y) {
+
+					cv::Vec3b intensity = input.at<cv::Vec3b>(y, x);
+//
+//
+//
+//
+//					sumReal += xmn * std::cos(2 * M_PI *         (k * m)                   );
+//					sumComplex += xmn * std::sin((2 * M_PI * k * n) / N);
+				}
+			}
+
+			// goto the next value
+			v++;
+		}
+		// goto the next line
+		u++;
+	}
+
 }
 
 /**
