@@ -82,7 +82,7 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
  * Shows the results of a DFT
  * @param results The results to be read
  */
-void showDftResults(const std::vector<std::array<double, 2> > results) {
+void showDftResults(const std::vector<std::array<double, 2>> results) {
 	// output the result
 	for (unsigned int n = 0; n < results.size(); ++n) {
 		std::cout << "X" << n << ":\t" << results.at(n)[0] << " " << results.at(n)[1] << std::endl;
