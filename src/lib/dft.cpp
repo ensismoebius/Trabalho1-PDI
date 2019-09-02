@@ -8,9 +8,9 @@
  *
  */
 
-#include <vector>
 #include <array>
 #include <cmath>
+#include <vector>
 #include <iostream>
 
 //#include <opencv2/opencv.hpp>
@@ -24,7 +24,7 @@
  * @param input The input vector
  * @param output A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  */
-void dft(std::vector<double> input, std::vector<std::array<double, 2>> output) {
+void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) {
 
 	/**
 	 * The index of the current value being transformed
@@ -79,7 +79,7 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>> output) {
 }
 
 /**
- * Showns the results of an DFT
+ * Shows the results of a DFT
  * @param results The results to be read
  */
 void showDftResults(const std::vector<std::array<double, 2> > results) {
