@@ -12,6 +12,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+
 //#include <opencv2/opencv.hpp>
 
 //void genDiscreteFourierTransformSpectrum(cv::Mat src, cv::Mat dst) {
@@ -75,9 +76,15 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>> output) {
 		// goto the next value
 		k++;
 	}
+}
 
+/**
+ * Showns the results of an DFT
+ * @param results The results to be read
+ */
+void showDftResults(const std::vector<std::array<double, 2> > results) {
 	// output the result
-	for (unsigned int n = 0; n < input.size(); ++n) {
-		std::cout << "X" << n << ":\t" << output.at(n)[0] << " " << output.at(n)[1] << std::endl;
+	for (unsigned int n = 0; n < results.size(); ++n) {
+		std::cout << "X" << n << ":\t" << results.at(n)[0] << " " << results.at(n)[1] << std::endl;
 	}
 }
