@@ -46,7 +46,7 @@ void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double>
  */
 void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
 	/**
-	 * The index of the current value being transformed
+	 * The index of the current value being untransformed
 	 */
 	int k = 0;
 
@@ -56,7 +56,7 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output)
 	int N = input.size();
 
 	/**
-	 * The current value being transformed
+	 * The current value being untransformed
 	 */
 	std::array<double, 2> xn;
 
@@ -92,6 +92,7 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output)
 		k++;
 	}
 }
+
 /**
  * Calculate the Discrete Fourier Transform
  * @param input The input vector
@@ -128,7 +129,7 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
 	while (k < N) {
 
 		// Calculate the sums
-		for (unsigned int n = 0; n < input.size(); ++n) {
+		for (unsigned int n = 0; n < N; ++n) {
 			xn = input.at(n);
 
 			sumReal += xn * std::cos((2 * M_PI * k * n) / N);
@@ -151,42 +152,9 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
 	}
 }
 
-//void dft2(cv::Mat input, std::vector<std::vector<std::array<double, 2>>>& output) {
+//void dft2_1(cv::Mat input) {
 //
-//	/**
-//	 * Number of lines
-//	 */
-//	unsigned int M = 0;
-//
-//	/**
-//	 * Number of items at each line
-//	 */
-//	unsigned int N = 0;
-//
-//	/**
-//	 * The index of the current line being transformed
-//	 */
-//	unsigned int k = 0;
-//
-//	/**
-//	 * The index of the current value in the line being transformed
-//	 */
-//	unsigned int j = 0;
-//
-//	/**
-//	 * The index of the current line being transformed
-//	 */
-//	unsigned int u = 0;
-//
-//	/**
-//	 * The index of the current value in the line being transformed
-//	 */
-//	unsigned int v = 0;
-//
-//	/**
-//	 * The current value being transformed
-//	 */
-//	double xmn = 0;
+//	//, std::vector<std::vector<std::array<double, 2>>>& output
 //
 //	/**
 //	 * Sum of the real parts
@@ -198,34 +166,76 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
 //	 */
 //	double sumComplex = 0;
 //
-//	while (u < M) {
-//		while (v < N) {
+//	//////////level-1////////////////
+//	/**
+//	 * The index of the current line being transformed
+//	 */
+//	int unsigned line = 0;
 //
-//			//	for (int row = 0; row < image.rows; row++) {
-//			//		for (int col = 0; col < image.cols; col++) {
-//			//			//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
-//			//			image.at<cv::Vec3b>(row, col) = color;
-//			//		}
-//			//	}
+//	/**
+//	 * The amount of rows
+//	 */
+//	int unsigned M = input.rows;
 //
-//			for (unsigned int x = 0; x < M; ++x) {
-//				for (unsigned int y = 0; y < N; ++y) {
+//	//////////level-2//////////////////
+//	/**
+//	 * The index of the current value being transformed
+//	 */
+//	int unsigned column = 0;
 //
-//					cv::Vec3b intensity = input.at<cv::Vec3b>(y, x);
-////
-////
-////
-////
-////					sumReal += xmn * std::cos(2 * M_PI *         (k * m)                   );
-////					sumComplex += xmn * std::sin((2 * M_PI * k * n) / N);
-//				}
+//	/**
+//	 * The amount of items per cell
+//	 */
+//	int unsigned N = input.cols;
+//
+//	/**
+//	 * The current value being transformed
+//	 */
+//	double xnm = 0;
+//	////////////////////////////////////
+//
+//	//	for (int row = 0; row < image.rows; row++) {
+//	//		for (int col = 0; col < image.cols; col++) {
+//	//			//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
+//	//			image.at<cv::Vec3b>(row, col) = color;
+//	//		}
+//	//	}
+//
+//	while (line < M) {
+//
+//		std::vector<std::array<double, 2>> out;
+//
+//		while (column < N) {
+//			// Calculate the sums
+//			for (unsigned int n = 0; n < N; ++n) {
+//				xnm = input.at<double>(column, line);
+//
+//				xnm = (-2 * M_PI * column * n) / N;
+//
+//
+//				sumReal += xnm * std::cos((2 * M_PI * column * n) / N);
+//				sumComplex += xnm * std::sin((2 * M_PI * column * n) / N);
 //			}
 //
+//			// store the results divide by the amount
+//			// values in the signal
+//			std::array<double, 2> r;
+//			out.push_back(r);
+//			out.at(column)[0] = sumReal / N;
+//			out.at(column)[1] = sumComplex / N;
+//
+//			// reset the sums
+//			sumReal = 0;
+//			sumComplex = 0;
+//
 //			// goto the next value
-//			v++;
+//			k++;
 //		}
+//
+//
+//
 //		// goto the next line
-//		u++;
+//		line++;
 //	}
 //
 //}
@@ -235,7 +245,7 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
  * @param results The results to be read
  */
 void showDftResults(const std::vector<std::array<double, 2>> results) {
-	// output the result
+// output the result
 	for (unsigned int n = 0; n < results.size(); ++n) {
 		std::cout << "X" << n << ":\t" << results.at(n)[0] << " " << results.at(n)[1] << std::endl;
 	}
