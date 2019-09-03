@@ -7,10 +7,13 @@
 
 int main(int argc, char **argv) {
 
-	std::vector<double> teste = { 1, 4, 5, 6, 8, 10, 253, 54, 89, 50, 1, 0, 56, 65, 52, 1, 2, 3, 9, 8, 7 };
+	std::vector<double> teste = { 2, 3, 4, 4, 2, 3, 4, 4 };
+	std::vector<double> teste2;
+
 	std::vector<std::array<double, 2>> output;
 	dft(teste, output);
 	showDftResults(output);
+	idft(output, teste2);
 
 	Gtk::Main kit(argc, argv);
 

@@ -16,6 +16,13 @@
 #include <iostream>
 
 /**
+ * Calculate the Inverse Discrete Fourier Transform
+ * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
+ * @param output The input vector
+ */
+void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output);
+
+/**
  * Calculate the Discrete Fourier Transform
  * @param input The input vector
  * @param output A vector of sorted pairs, the 1st component is real, the 2nd component is complex
