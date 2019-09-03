@@ -10,9 +10,14 @@ int main(int argc, char **argv) {
 	std::vector<double> original = { 200, 100, 255, 255, 255, 0, 0, 0 };
 	std::vector<std::array<double, 2>> transformed;
 	std::vector<double> resconstructed;
+	std::vector<double> magnitudes;
+	std::vector<double> fases;
 
 	dft(original, transformed);
 	showDftResults(transformed);
+	calculateMagnitude(transformed, magnitudes);
+	calculateFase(transformed, fases);
+
 	idft(transformed, resconstructed);
 
 	Gtk::Main kit(argc, argv);

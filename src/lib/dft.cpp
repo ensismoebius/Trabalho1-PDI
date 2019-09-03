@@ -16,9 +16,33 @@
 #include <opencv2/opencv.hpp>
 
 /**
+ * Calculates the magnitude for each sorted pairs resulted
+ * from an Discrete Fourier Transformation
+ * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
+ * @param output The real vector result
+ */
+void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
+	for (unsigned int n = 0; n < input.size(); ++n) {
+		output.push_back(sqrt(pow(input.at(n)[0], 2) + pow(input.at(n)[1], 2)));
+	}
+}
+
+/**
+ * Calculates the fase for each sorted pairs resulted
+ * from an Discrete Fourier Transformation
+ * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
+ * @param output The real vector result
+ */
+void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
+	for (unsigned int n = 0; n < input.size(); ++n) {
+		output.push_back(atan(input.at(n)[1] / input.at(n)[0]));
+	}
+}
+
+/**
  * Calculate the Inverse Discrete Fourier Transform
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
- * @param output The input vector
+ * @param output The real vector result
  */
 void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
 	/**

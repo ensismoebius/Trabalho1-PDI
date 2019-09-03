@@ -16,6 +16,22 @@
 #include <iostream>
 
 /**
+ * Calculates the magnitude of each sorted pairs resulted
+ * from an Discrete Fourier Transformation
+ * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
+ * @param output The real vector result
+ */
+void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<double>& output);
+
+/**
+ * Calculates the fase for each sorted pairs resulted
+ * from an Discrete Fourier Transformation
+ * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
+ * @param output The real vector result
+ */
+void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double>& output);
+
+/**
  * Calculate the Inverse Discrete Fourier Transform
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The input vector
