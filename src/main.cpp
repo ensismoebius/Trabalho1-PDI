@@ -7,13 +7,13 @@
 
 int main(int argc, char **argv) {
 
-	std::vector<double> teste = { 2, 3, 4, 4, 2, 3, 4, 4 };
-	std::vector<double> teste2;
+	std::vector<double> original = { 200, 100, 255, 255, 255, 0, 0, 0 };
+	std::vector<std::array<double, 2>> transformed;
+	std::vector<double> resconstructed;
 
-	std::vector<std::array<double, 2>> output;
-	dft(teste, output);
-	showDftResults(output);
-	idft(output, teste2);
+	dft(original, transformed);
+	showDftResults(transformed);
+	idft(transformed, resconstructed);
 
 	Gtk::Main kit(argc, argv);
 
