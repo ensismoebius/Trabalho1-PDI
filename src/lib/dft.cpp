@@ -15,10 +15,6 @@
 
 #include <opencv2/opencv.hpp>
 
-//void genDiscreteFourierTransformSpectrum(cv::Mat src, cv::Mat dst) {
-//
-//}
-
 /**
  * Calculate the Inverse Discrete Fourier Transform
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
@@ -61,11 +57,8 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output)
 			sumComplex += xn[1] * std::sin((2 * M_PI * k * n) / N);
 		}
 
-		// store the results divide by the amount
-		// values in the signal
+		// store the real and complex summed results
 		output.push_back(sumReal + sumComplex);
-
-		//output.at(k)[1] = sumComplex / N;
 
 		// reset the sums
 		sumReal = 0;
