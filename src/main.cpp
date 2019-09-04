@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 	cv::Mat complexI;
 	cv::merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
 
-	dft2(complexI, complexI);            // this way the result may fit in the source matrix
+	cv::dft(complexI, complexI);            // this way the result may fit in the source matrix
 
 	// compute the magnitude and switch to logarithmic scale
 	// => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
@@ -54,22 +54,22 @@ int main(int argc, char **argv) {
 	magI = magI(cv::Rect(0, 0, magI.cols & -2, magI.rows & -2));
 
 	// rearrange the quadrants of Fourier image  so that the origin is at the image center
-	int cx = magI.cols / 2;
-	int cy = magI.rows / 2;
+//	int cx = magI.cols / 2;
+//	int cy = magI.rows / 2;
+//
+//	cv::Mat q0(magI, cv::Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
+//	cv::Mat q1(magI, cv::Rect(cx, 0, cx, cy));  // Top-Right
+//	cv::Mat q2(magI, cv::Rect(0, cy, cx, cy));  // Bottom-Left
+//	cv::Mat q3(magI, cv::Rect(cx, cy, cx, cy)); // Bottom-Right
 
-	cv::Mat q0(magI, cv::Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
-	cv::Mat q1(magI, cv::Rect(cx, 0, cx, cy));  // Top-Right
-	cv::Mat q2(magI, cv::Rect(0, cy, cx, cy));  // Bottom-Left
-	cv::Mat q3(magI, cv::Rect(cx, cy, cx, cy)); // Bottom-Right
-
-	cv::Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
-	q0.copyTo(tmp);
-	q3.copyTo(q0);
-	tmp.copyTo(q3);
-
-	q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
-	q2.copyTo(q1);
-	tmp.copyTo(q2);
+//	cv::Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
+//	q0.copyTo(tmp);
+//	q3.copyTo(q0);
+//	tmp.copyTo(q3);
+//
+//	q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
+//	q2.copyTo(q1);
+//	tmp.copyTo(q2);
 
 	cv::normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a
 	// viewable image form (float between values 0 and 1).
