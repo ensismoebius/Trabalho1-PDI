@@ -46,6 +46,13 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output)
 void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output);
 
 /**
+ * Calculate the 2D Discrete Fourier Transform
+ * @param input The input
+ * @param result The output
+ */
+void dft2(cv::Mat input, cv::Mat& result);
+
+/**
  * Shows the results of a DFT
  * @param results The results to be read
  */

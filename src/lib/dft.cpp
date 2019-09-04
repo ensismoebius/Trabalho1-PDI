@@ -152,93 +152,105 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
 	}
 }
 
-//void dft2_1(cv::Mat input) {
+//int width = inputData.cols;
+//int height = inputData.rows;
 //
-//	//, std::vector<std::vector<std::array<double, 2>>>& output
+//// Two outer loops iterate on output data.
 //
-//	/**
-//	 * Sum of the real parts
-//	 */
-//	double sumReal = 0;
+//for (int yWave = 0; yWave < height; yWave++) {
 //
-//	/**
-//	 * Sum of the complex parts
-//	 */
-//	double sumComplex = 0;
+//	for (int xWave = 0; xWave < width; xWave++) {
 //
-//	//////////level-1////////////////
-//	/**
-//	 * The index of the current line being transformed
-//	 */
-//	int unsigned line = 0;
+//		// Two inner loops iterate on input data.
 //
-//	/**
-//	 * The amount of rows
-//	 */
-//	int unsigned M = input.rows;
+//		for (int ySpace = 0; ySpace < height; ySpace++) {
 //
-//	//////////level-2//////////////////
-//	/**
-//	 * The index of the current value being transformed
-//	 */
-//	int unsigned column = 0;
+//			for (int xSpace = 0; xSpace < width; xSpace++) {
 //
-//	/**
-//	 * The amount of items per cell
-//	 */
-//	int unsigned N = input.cols;
+//				// Compute real, imag, and ampltude.
+//				result.at<cv::Vec2f>(yWave, xWave)[0] += (inputData.at<cv::Vec2f>(ySpace, xSpace)[0] * std::cos(2 * M_PI * ((1.0 * xWave * xSpace / width) + (1.0 * yWave * ySpace / height)))) / width * height;
+//				result.at<cv::Vec2f>(yWave, xWave)[1] -= (inputData.at<cv::Vec2f>(ySpace, xSpace)[1] * std::sin(2 * M_PI * ((1.0 * xWave * xSpace / width) + (1.0 * yWave * ySpace / height)))) / width * height;
 //
-//	/**
-//	 * The current value being transformed
-//	 */
-//	double xnm = 0;
-//	////////////////////////////////////
+//				//std::cout << result.at<cv::Vec2f>(yWave, xWave)[0] << std::endl;
+//				//std::cout << result.at<cv::Vec2f>(yWave, xWave)[1] << std::endl;
 //
-//	//	for (int row = 0; row < image.rows; row++) {
-//	//		for (int col = 0; col < image.cols; col++) {
-//	//			//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
-//	//			image.at<cv::Vec3b>(row, col) = color;
-//	//		}
-//	//	}
-//
-//	while (line < M) {
-//
-//		std::vector<std::array<double, 2>> out;
-//
-//		while (column < N) {
-//			// Calculate the sums
-//			for (unsigned int n = 0; n < N; ++n) {
-//				xnm = input.at<double>(column, line);
-//
-//				xnm = (-2 * M_PI * column * n) / N;
-//
-//
-//				sumReal += xnm * std::cos((2 * M_PI * column * n) / N);
-//				sumComplex += xnm * std::sin((2 * M_PI * column * n) / N);
+//				//amplitudeOut[yWave][xWave] = sqrt(	realOut[yWave][xWave] * realOut[yWave][xWave]+ imagOut[yWave][xWave]* imagOut[yWave][xWave]);
 //			}
-//
-//			// store the results divide by the amount
-//			// values in the signal
-//			std::array<double, 2> r;
-//			out.push_back(r);
-//			out.at(column)[0] = sumReal / N;
-//			out.at(column)[1] = sumComplex / N;
-//
-//			// reset the sums
-//			sumReal = 0;
-//			sumComplex = 0;
-//
-//			// goto the next value
-//			k++;
 //		}
 //
-//
-//
-//		// goto the next line
-//		line++;
 //	}
 //
 //}
+
+/**
+ * Calculate the 2D Discrete Fourier Transform
+ * @param input The input
+ * @param result The output
+ */
+void dft2(cv::Mat input, cv::Mat& result) {
+
+	/**
+	 * Sum of the real parts
+	 */
+	double sumReal = 0;
+
+	/**
+	 * Sum of the complex parts
+	 */
+	double sumComplex = 0;
+
+	//////////level-1////////////////
+	/**
+	 * The index of the current line being transformed
+	 */
+	int unsigned u = 0;
+
+	/**
+	 * The amount of rows
+	 */
+	int unsigned M = input.rows;
+
+	//////////level-2//////////////////
+	/**
+	 * The index of the current value being transformed
+	 */
+	int unsigned v = 0;
+
+	/**
+	 * The amount of items per cell
+	 */
+	int unsigned N = input.cols;
+
+	while (u < M) {
+		while (v < N) {
+
+			// Calculate the sums
+			for (unsigned int y = 0; y < M; ++y) {
+				for (unsigned int x = 0; x < N; ++x) {
+
+					double f = (double) input.at<uchar>(y, x);
+
+					sumReal += f * std::cos(-2 * M_PI * (u * x / M + v * y / N));
+					sumComplex += f * std::sin(-2 * M_PI * (u * x / M + v * y / N));
+				}
+			}
+
+			result.at<cv::Vec2b>(v, u)[0] = sumReal / (M * N);
+			result.at<cv::Vec2b>(v, u)[1] = sumComplex / (M * N);
+
+			// reset the sums
+			sumReal = 0;
+			sumComplex = 0;
+
+			// goto the next value
+			v++;
+		}
+
+		// goto the next line
+		u++;
+	}
+
+}
 
 /**
  * Shows the results of a DFT
