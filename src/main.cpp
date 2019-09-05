@@ -11,6 +11,7 @@
 #include <gtkmm-3.0/gtkmm.h>
 #include <opencv2/opencv.hpp>
 
+#include "lib/dft2.h"
 #include "MainWindow.cpp"
 
 void genResultsImage(char* file) {
