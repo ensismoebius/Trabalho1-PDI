@@ -8,19 +8,20 @@
 void shiftMatrice(const cv::Mat& magI) {
 	int cx = magI.cols / 2;
 	int cy = magI.rows / 2;
-	cv::Mat q0(magI, cv::Rect(0, 0, cx, cy)); // Top-Left
-	cv::Mat q1(magI, cv::Rect(cx, 0, cx, cy)); // Top-Right
-	cv::Mat q2(magI, cv::Rect(0, cy, cx, cy)); // Bottom-Left
-	cv::Mat q3(magI, cv::Rect(cx, cy, cx, cy)); // Bottom-Right
+	cv::Mat tl(magI, cv::Rect(0, 0, cx, cy)); // Top-Left
+	cv::Mat tr(magI, cv::Rect(cx, 0, cx, cy)); // Top-Right
+	cv::Mat bl(magI, cv::Rect(0, cy, cx, cy)); // Bottom-Left
+	cv::Mat br(magI, cv::Rect(cx, cy, cx, cy)); // Bottom-Right
+
 	cv::Mat tmp;
 	// swap (Top-Left with Bottom-Right)
-	q0.copyTo(tmp);
-	q3.copyTo(q0);
-	tmp.copyTo(q3);
-	q1.copyTo(tmp);
+	tl.copyTo(tmp);
+	br.copyTo(tl);
+	tmp.copyTo(br);
+	tr.copyTo(tmp);
 	// swap (Top-Right with Bottom-Left)
-	q2.copyTo(q1);
-	tmp.copyTo(q2);
+	bl.copyTo(tr);
+	tmp.copyTo(bl);
 }
 
 cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true) {
@@ -47,49 +48,98 @@ cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = t
 	return mask;
 }
 
-cv::Mat genDFTSpectrum(const char* filename, bool shifted = true, bool highpass = false, bool lowpass = false) {
+void genImageFromFourierSpectrum(const cv::Mat srcComplex, cv::Mat& dst) {
+	//calculating the idft
+	cv::dft(srcComplex, dst, cv::DFT_INVERSE | cv::DFT_REAL_OUTPUT);
+	cv::normalize(dst, dst, 0, 1, CV_MINMAX);
+}
+
+void genFourierSpectrum(const cv::Mat src, cv::Mat& dstReal, cv::Mat& dstComplexI, bool shifted) {
+	// expand input image to optimal size,
+	cv::Mat padded;
+	int m = cv::getOptimalDFTSize(src.rows);
+	int n = cv::getOptimalDFTSize(src.cols);
+
+	// on the border add zero values
+	cv::copyMakeBorder(src, padded, 0, m - src.rows, 0, n - src.cols, cv::BORDER_CONSTANT, cv::Scalar::all(0));
+
+	// create a new channel for housing the complex numbers
+	cv::Mat planes[] = { cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F) };
+	cv::merge(planes, 2, dstComplexI);
+
+	// perform the dft
+	cv::dft(dstComplexI, dstComplexI); // this way the result may fit in the source matrix
+
+	// split channels for reading
+	cv::split(dstComplexI, planes);
+
+	// planes[0] = real values of DFT(original)
+	// planes[1] = Imaginary values of DFT(src)
+	cv::magnitude(planes[0], planes[1], planes[0]);
+
+	// planes[0] = magnitude values of DFT(src)
+	dstReal = planes[0];
+	dstReal += cv::Scalar::all(1);
+
+	// switch to logarithmic scale
+	cv::log(dstReal, dstReal);
+
+	// crop the spectrum, if it has an odd number of rows or columns
+	dstReal = dstReal(cv::Rect(0, 0, dstReal.cols & -2, dstReal.rows & -2));
+
+	// shift the quadrants of Fourier image so that the origin is at the image center
+	if (shifted) {
+		shiftMatrice(dstReal);
+	}
+}
+
+cv::Mat genImage(const char* filename, bool highpass = false, bool lowpass = false) {
 
 	cv::Mat original = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat real;
+	cv::Mat complex;
 
 	if (original.empty()) return original;
 
 	// expand input image to optimal size,
-	cv::Mat padded;
-	int m = cv::getOptimalDFTSize(original.rows);
-	int n = cv::getOptimalDFTSize(original.cols);
+	genFourierSpectrum(original, real, complex, false);
 
-	// on the border add zero values
-	cv::copyMakeBorder(original, padded, 0, m - original.rows, 0, n - original.cols, cv::BORDER_CONSTANT, cv::Scalar::all(0));
+	if (highpass) {
+		cv::Mat filter(original.rows, original.cols, CV_8U);
+		filter = createHighLowPassFilter(original, 20, true);
 
-	// create a new channel for housing the complex numbers
-	cv::Mat planes[] = { cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F) };
-	cv::Mat complexI;
-	cv::merge(planes, 2, complexI);
+		shiftMatrice(filter);
 
-	// perform the dft
-	cv::dft(complexI, complexI); // this way the result may fit in the source matrix
+		cv::multiply(complex, filter, complex);
+	}
+	if (lowpass) {
+		cv::Mat filter;
+		createHighLowPassFilter(filter, 20, false);
+		shiftMatrice(filter);
+		cv::multiply(complex, filter, complex);
+	}
 
-	// split channels for reading
-	cv::split(complexI, planes);
+	genImageFromFourierSpectrum(complex, real);
 
-	// planes[0] = real values of DFT(original)
-	// planes[1] = Imaginary values of DFT(original)
-	cv::magnitude(planes[0], planes[1], planes[0]);
+	cv::normalize(real, real, 0, 1, CV_MINMAX);
 
-	// planes[0] = magnitude values of DFT(original)
-	cv::Mat magI = planes[0];
-	magI += cv::Scalar::all(1);
+	// Resize for better visualization
+	cv::resize(real, real, cv::Size(500, 500));
 
-	// switch to logarithmic scale
-	cv::log(magI, magI);
+	return real;
+}
+cv::Mat genImageAndSpectrumSideBySide(const char* filename, bool shifted = true, bool highpass = false, bool lowpass = false) {
 
-	// crop the spectrum, if it has an odd number of rows or columns
-	magI = magI(cv::Rect(0, 0, magI.cols & -2, magI.rows & -2));
+	cv::Mat original = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat magI;
+	cv::Mat magIc;
 
-	// shift the quadrants of Fourier image so that the origin is at the image center
+	if (original.empty()) return original;
+
+	// expand input image to optimal size,
+	genFourierSpectrum(original, magI, magIc, shifted);
+
 	if (shifted) {
-		shiftMatrice(magI);
-
 		if (highpass) {
 			cv::multiply(magI, createHighLowPassFilter(magI, 20, true), magI);
 		}
@@ -151,17 +201,26 @@ int main(int argc, char **argv) {
 	cv::Mat magIV;
 	cv::Mat magV;
 
-	magI = genDFTSpectrum(filename1, true, false, true);
-	magII = genDFTSpectrum(filename2, true, false, true);
-	magIII = genDFTSpectrum(filename3, true, false, true);
-	magIV = genDFTSpectrum(filename4, true, false, true);
-	magV = genDFTSpectrum(filename5, true, false, true);
+	magI = genImageAndSpectrumSideBySide(filename1, true);
+	magII = genImageAndSpectrumSideBySide(filename2, true);
+	magIII = genImageAndSpectrumSideBySide(filename3, true);
+	magIV = genImageAndSpectrumSideBySide(filename4, true);
+	magV = genImageAndSpectrumSideBySide(filename5, true);
+
+	cv::Mat mag = genImage(filename3, true);
+	cv::imshow("spectrum magnitude", mag);
+	cv::waitKey();
 
 //	cv::imwrite("shiftedSpectrumI.png", magI);
 //	cv::imwrite("shiftedSpectrumII.png", magII);
 //	cv::imwrite("shiftedSpectrumIII.png", magIII);
 //	cv::imwrite("shiftedSpectrumIV.png", magIV);
 //	cv::imwrite("shiftedSpectrumV.png", magV);
+
+//	cv::Mat dst;
+//	genImageFromFourierSpectrum(dstComplexI, dst);
+//	cv::imshow("Reconstructed", dst);
+//	cv::waitKey();
 
 	cv::imshow("spectrum magnitude", magI);
 	cv::waitKey();
@@ -174,11 +233,11 @@ int main(int argc, char **argv) {
 	cv::imshow("spectrum magnitude", magV);
 	cv::waitKey();
 
-	magI = genDFTSpectrum(filename1, false);
-	magII = genDFTSpectrum(filename2, false);
-	magIII = genDFTSpectrum(filename3, false);
-	magIV = genDFTSpectrum(filename4, false);
-	magV = genDFTSpectrum(filename5, false);
+	magI = genImageAndSpectrumSideBySide(filename1, false);
+	magII = genImageAndSpectrumSideBySide(filename2, false);
+	magIII = genImageAndSpectrumSideBySide(filename3, false);
+	magIV = genImageAndSpectrumSideBySide(filename4, false);
+	magV = genImageAndSpectrumSideBySide(filename5, false);
 
 //	cv::imwrite("spectrumI.png", magI);
 //	cv::imwrite("spectrumII.png", magII);
