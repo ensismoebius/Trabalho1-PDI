@@ -27,7 +27,8 @@ void genResultsImage(char* file) {
 	cv::Mat result = idft2(complex);
 
 	// compute the masked IDFT results
-	cv::Mat filter = createHighLowPassFilter(original, 20, false);
+	cv::Mat filter = createHighLowPassFilter(original, 20, false, 4);
+
 	complex = combineDFTComplexAndMask(complex, filter);
 	cv::Mat spectrum2 = genSpectrumImage(complex);
 	cv::Mat result2 = idft2(complex);
@@ -65,9 +66,10 @@ void genResultsImage(char* file) {
 }
 
 int main(int argc, char **argv) {
-	char* file = argv[3];
 
-	genResultsImage(file);
+	for (int argi = 1; argi < argc; argi++) {
+		genResultsImage(argv[argi]);
+	}
 
 	Gtk::Main kit(argc, argv);
 

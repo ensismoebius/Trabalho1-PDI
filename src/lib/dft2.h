@@ -6,6 +6,7 @@
  *
  * Based on the article from
  * @link https://vgg.fiit.stuba.sk/2012-05/frequency-domain-filtration/
+ * @author Ing. Patrik Polatsek
  *
  * 5 de set de 2019
  *
@@ -53,7 +54,7 @@ cv::Mat idft2(cv::Mat complex);
  * @param highpass - true = highpass, false = lowpass
  * @return the filter matrix
  */
-cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true);
+cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true, float gaussiamSigma = 1);
 
 /**
  * Combines a filter with the complex matrix

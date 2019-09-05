@@ -6,6 +6,7 @@
  *
  * Based on the article from
  * @link https://vgg.fiit.stuba.sk/2012-05/frequency-domain-filtration/
+ * @author Ing. Patrik Polatsek
  *
  * 5 de set de 2019
  *
@@ -114,17 +115,17 @@ cv::Mat idft2(cv::Mat complex) {
  * @param highpass - true = highpass, false = lowpass
  * @return the filter matrix
  */
-cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true) {
+cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true, float gaussiamSigma = 1) {
 
 	uchar backgroundColor;
 	uchar cicleColor;
 
 	if (highpass) {
-		backgroundColor = 255;
+		backgroundColor = 1;
 		cicleColor = 0;
 	} else {
 		backgroundColor = 0;
-		cicleColor = 255;
+		cicleColor = 1;
 	}
 
 	cv::Mat mask(reference.rows, reference.cols, CV_32F);
@@ -134,6 +135,10 @@ cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = t
 	unsigned int centerY = reference.rows / 2;
 
 	cv::circle(mask, cv::Point(centerX, centerY), radius, cv::Scalar(cicleColor), cv::FILLED);
+
+	if (gaussiamSigma > 0) {
+		cv::GaussianBlur(mask, mask, cv::Size(0, 0), gaussiamSigma);
+	}
 
 	return mask;
 }
@@ -148,6 +153,8 @@ cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = t
 cv::Mat combineDFTComplexAndMask(cv::Mat complex, cv::Mat mask) {
 
 	cv::Mat shiftedMask = shiftMatrice(mask);
+
+	cv::normalize(shiftedMask, shiftedMask, 0, 1, cv::NORM_MINMAX);
 
 	cv::Mat planes[] = { cv::Mat::zeros(complex.size(), CV_32F), cv::Mat::zeros(complex.size(), CV_32F) };
 
