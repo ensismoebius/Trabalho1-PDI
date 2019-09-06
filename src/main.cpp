@@ -12,9 +12,10 @@
 #include <opencv2/opencv.hpp>
 
 #include "lib/dft2.h"
+#include "lib/noise.h"
 #include "MainWindow.cpp"
 
-void genResultsImage(char* file) {
+void exercicio2(char* file) {
 
 	// Reads the image
 	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
@@ -65,16 +66,32 @@ void genResultsImage(char* file) {
 	cv::waitKey(0);
 }
 
+void exercicio4(char* file) {
+	// Reads the image
+	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+
+	original = addSaltAndPepperNoise(original, 0.05);
+	original = addGaussianNoise(original, 10);
+
+	// shows the result
+	cv::imshow("mix", original);
+	cv::waitKey(0);
+
+}
+
 int main(int argc, char **argv) {
 
-	for (int argi = 1; argi < argc; argi++) {
-		genResultsImage(argv[argi]);
-	}
+//	for (int argi = 1; argi < argc; argi++) {
+//		exercicio2(argv[argi]);
+//	}
 
-	Gtk::Main kit(argc, argv);
+	exercicio4(argv[1]);
+	exercicio4(argv[5]);
 
-	MainWindow mwindow(argv[1]);
-
-	Gtk::Main::run(mwindow);
+//	Gtk::Main kit(argc, argv);
+//
+//	MainWindow mwindow(argv[1]);
+//
+//	Gtk::Main::run(mwindow);
 
 }
