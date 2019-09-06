@@ -1,89 +1,92 @@
+/**
+ * @author André Furlan
+ * @email ensismoebius@gmail.com
+ * This whole project are under GPLv3, for
+ * more information read the license file
+ *
+ * 5 de set de 2019
+ *
+ */
 #include <iostream>
 #include <gtkmm-3.0/gtkmm.h>
 #include <opencv2/opencv.hpp>
 
-#include "lib/dft.h"
+#include "lib/dft2.h"
+#include "lib/noise.h"
 #include "MainWindow.cpp"
+
+void exercicio2(char* file) {
+
+	// Reads the image
+	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+
+	// compute the DFT results
+	cv::Mat complex = dft2(original);
+	cv::Mat spectrum = genSpectrumImage(complex);
+
+	// compute the IDFT results
+	cv::Mat result = idft2(complex);
+
+	// compute the masked IDFT results
+	cv::Mat filter = createHighLowPassFilter(original, 20, false, 4);
+
+	complex = combineDFTComplexAndMask(complex, filter);
+	cv::Mat spectrum2 = genSpectrumImage(complex);
+	cv::Mat result2 = idft2(complex);
+
+	// create one big image with everything
+	spectrum2.convertTo(spectrum2, CV_32F);
+	original.convertTo(original, CV_32F);
+	spectrum.convertTo(spectrum, CV_32F);
+	result2.convertTo(result2, CV_32F);
+	result.convertTo(result, CV_32F);
+	filter.convertTo(filter, CV_32F);
+
+	// equalize the matrix types
+	cv::normalize(spectrum2, spectrum2, 1, 0, cv::NORM_INF);
+	cv::normalize(original, original, 1, 0, cv::NORM_INF);
+	cv::normalize(spectrum, spectrum, 1, 0, cv::NORM_INF);
+	cv::normalize(result2, result2, 1, 0, cv::NORM_INF);
+	cv::normalize(result, result, 1, 0, cv::NORM_INF);
+	cv::normalize(filter, filter, 1, 0, cv::NORM_INF);
+
+	// creates the first row of the image
+	cv::hconcat(original, spectrum, original);
+	cv::hconcat(original, result, original);
+
+	// creates the second row of the image
+	cv::hconcat(filter, spectrum2, filter);
+	cv::hconcat(filter, result2, filter);
+
+	// concatenates the first and second rows
+	cv::vconcat(original, filter, original);
+
+	// shows the result
+	cv::imshow("mix", original);
+	cv::waitKey(0);
+}
+
+void exercicio4(char* file) {
+	// Reads the image
+	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+
+	original = addSaltAndPepperNoise(original, 0.05);
+	original = addGaussianNoise(original, 10);
+
+	// shows the result
+	cv::imshow("mix", original);
+	cv::waitKey(0);
+
+}
 
 int main(int argc, char **argv) {
 
-//	std::vector<double> original = { 1, 2, 0, 1 };
-//	std::vector<std::array<double, 2>> transformed;
-//	std::vector<double> resconstructed;
-//	std::vector<double> magnitudes;
-//	std::vector<double> fases;
-//
-//	dft(original, transformed);
-//	showDftResults(transformed);
-//	calculateMagnitude(transformed, magnitudes);
-//	calculateFase(transformed, fases);
-//	idft(transformed, resconstructed);
+//	for (int argi = 1; argi < argc; argi++) {
+//		exercicio2(argv[argi]);
+//	}
 
-//	cv::Mat originalMat(2, 2, CV_8UC1, cv::Scalar(0));
-//	originalMat.at<uchar>(0, 0) = 10;
-//	originalMat.at<uchar>(0, 1) = 0;
-//	originalMat.at<uchar>(1, 0) = 0;
-//	originalMat.at<uchar>(1, 1) = 10;
-
-	const char* filename = argc >= 2 ? argv[1] : "lena.jpg";
-
-	cv::Mat I = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
-	if (I.empty()) return -1;
-
-	cv::Mat padded;                            //expand input image to optimal size
-	int m = cv::getOptimalDFTSize(I.rows);
-	int n = cv::getOptimalDFTSize(I.cols); // on the border add zero values
-	cv::copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, cv::BORDER_CONSTANT, cv::Scalar::all(0));
-
-	cv::Mat planes[] = { cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F) };
-	cv::Mat complexI;
-	cv::merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
-
-	dft2(complexI, complexI);            // this way the result may fit in the source matrix
-
-	// compute the magnitude and switch to logarithmic scale
-	// => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
-	cv::split(complexI, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
-	cv::magnitude(planes[0], planes[1], planes[0]);                   // planes[0] = magnitude
-	cv::Mat magI = planes[0];
-
-	magI += cv::Scalar::all(1);                    // switch to logarithmic scale
-	cv::log(magI, magI);
-
-	// crop the spectrum, if it has an odd number of rows or columns
-	magI = magI(cv::Rect(0, 0, magI.cols & -2, magI.rows & -2));
-
-	// rearrange the quadrants of Fourier image  so that the origin is at the image center
-	int cx = magI.cols / 2;
-	int cy = magI.rows / 2;
-
-	cv::Mat q0(magI, cv::Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
-	cv::Mat q1(magI, cv::Rect(cx, 0, cx, cy));  // Top-Right
-	cv::Mat q2(magI, cv::Rect(0, cy, cx, cy));  // Bottom-Left
-	cv::Mat q3(magI, cv::Rect(cx, cy, cx, cy)); // Bottom-Right
-
-	cv::Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
-	q0.copyTo(tmp);
-	q3.copyTo(q0);
-	tmp.copyTo(q3);
-
-	q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
-	q2.copyTo(q1);
-	tmp.copyTo(q2);
-
-	cv::normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a
-	// viewable image form (float between values 0 and 1).
-
-	//cv::imshow("Input Image", I);    // Show the result
-	cv::imshow("spectrum magnitude", magI);
-	cv::waitKey();
-
-//	cv::Mat originalMat = cv::imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
-//	cv::Mat outputMat(originalMat.rows, originalMat.cols, CV_32F, cv::Scalar(0));
-//	dft2(originalMat, outputMat);
-//
-//	cv::imshow("1channel", outputMat);
-//	cv::waitKey(0);
+	exercicio4(argv[1]);
+	exercicio4(argv[5]);
 
 //	Gtk::Main kit(argc, argv);
 //
@@ -91,6 +94,4 @@ int main(int argc, char **argv) {
 //
 //	Gtk::Main::run(mwindow);
 
-	return 0;
 }
-
