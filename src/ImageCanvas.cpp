@@ -66,7 +66,7 @@ class ImageCanvas: public Gtk::DrawingArea {
 			videoCapturingActive = false;
 		}
 
-		ImageCanvas(char* path, const unsigned char mediaType = TYPE_IMAGE) {
+		ImageCanvas(const char* path, const unsigned char mediaType = TYPE_IMAGE) {
 
 			this->mediaType = mediaType;
 

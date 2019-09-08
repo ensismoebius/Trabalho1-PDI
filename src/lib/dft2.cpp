@@ -135,7 +135,9 @@ cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = t
 	unsigned int centerX = reference.cols / 2;
 	unsigned int centerY = reference.rows / 2;
 
-	cv::circle(mask, cv::Point(centerX, centerY), radius, cv::Scalar(cicleColor), cv::FILLED);
+	if (radius != 0) {
+		cv::circle(mask, cv::Point(centerX, centerY), radius, cv::Scalar(cicleColor), cv::FILLED);
+	}
 
 	if (gaussiamSigma > 0) {
 		cv::GaussianBlur(mask, mask, cv::Size(0, 0), gaussiamSigma);

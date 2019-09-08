@@ -5,12 +5,11 @@
 #include <gtkmm-3.0/gtkmm.h>
 #include <opencv2/opencv.hpp>
 
+#include "lib/dft2.h"
 #include "ImageCanvas.cpp"
 
 class MainWindow: public Gtk::Window {
 	protected:
-
-		bool processing;
 
 		Gtk::ScrolledWindow originalFrameScrool;
 		Gtk::ScrolledWindow processedFrameScrool;
@@ -18,16 +17,19 @@ class MainWindow: public Gtk::Window {
 		Gtk::ScrolledWindow spectrumFrameScrool;
 
 		Gtk::Frame originalFrame;
-		ImageCanvas* originalImageArea;
-
 		Gtk::Frame processedFrame;
-		ImageCanvas* processedImageArea;
-
 		Gtk::Frame maskFrame;
-		ImageCanvas* maskImageArea;
-
 		Gtk::Frame spectrumFrame;
+
+		cv::Mat originalImage;
+		cv::Mat processedImage;
+		cv::Mat spectrumImage;
+		cv::Mat maskImage;
+
+		ImageCanvas* originalImageArea;
+		ImageCanvas* processedImageArea;
 		ImageCanvas* spectrumImageArea;
+		ImageCanvas* maskImageArea;
 
 		Gtk::Box mainBox;
 
@@ -53,79 +55,66 @@ class MainWindow: public Gtk::Window {
 		Gtk::Button applyFilter;
 		Gtk::Button openNewImage;
 
-		void createOriginalImageCanvas(char* imagePath = 0) {
-
-			if (imagePath == 0) {
-				originalImageArea = new ImageCanvas(imagePath, ImageCanvas::TYPE_VIDEO);
-				originalImageArea->set_tooltip_text("");
-				return;
-			}
-
+		void createOriginalImageCanvas(const char* imagePath = 0) {
 			originalImageArea = new ImageCanvas(imagePath, ImageCanvas::TYPE_IMAGE);
 			originalImageArea->set_tooltip_text(imagePath);
+
+			originalImage = originalImageArea->image.clone();
+			originalImage.convertTo(originalImage, rtype, alpha, beta)
 		}
 
-		void createProcessedImageCanvas(char* imagePath = 0) {
-
-			if (imagePath == 0) {
-				processedImageArea = new ImageCanvas(imagePath, ImageCanvas::TYPE_VIDEO);
-				processedImageArea->set_tooltip_text("Processed video");
-				return;
-			}
-
+		void createProcessedImageCanvas(const char* imagePath = 0) {
 			processedImageArea = new ImageCanvas(imagePath, ImageCanvas::TYPE_IMAGE);
 			processedImageArea->set_tooltip_text("Processed image");
+
+			processedImage = processedImageArea->image.clone();
 		}
 
 		void createMaskImageCanvas() {
+
 			if (originalImageArea == 0) {
 				throw std::runtime_error("Error at 'createMaskImageCanvas()' method:\n Original image area must be defined first!!");
 			}
 			maskImageArea = new ImageCanvas(originalImageArea->image);
 			maskImageArea->set_tooltip_text("Mask");
+
+			maskImage = maskImageArea->image.clone();
 		}
 
 		void createSpectrumImageCanvas() {
+
 			if (originalImageArea == 0) {
 				throw std::runtime_error("Error at 'createMaskImageCanvas()' method:\n Original image area must be defined first!!");
 			}
 			spectrumImageArea = new ImageCanvas(originalImageArea->image);
 			spectrumImageArea->set_tooltip_text("Spectrum");
+
+			spectrumImage = spectrumImageArea->image.clone();
 		}
 
 		void on_outerRadiusAjustments_changed() {
-			std::cout << this->outerRadius.get_value() << std::endl;
-			filterMethod();
+			processImage();
 		}
 		void on_innerRadiusAjustments_changed() {
-			std::cout << this->innerRadius.get_value() << std::endl;
-			filterMethod();
-
+			processImage();
 		}
 		void on_sigmaAjustments_changed() {
-			std::cout << this->sigma.get_value() << std::endl;
-			filterMethod();
+			processImage();
 		}
-
 		void on_none_changed() {
-			std::cout << this->none.get_active() << std::endl;
-			filterMethod();
+			processImage();
 		}
 		void on_highPass_changed() {
-			std::cout << this->highPass.get_active() << std::endl;
-			filterMethod();
+			processImage();
 		}
 		void on_bandPass_changed() {
-			std::cout << this->bandPass.get_active() << std::endl;
-			filterMethod();
+			processImage();
 		}
 		void on_lowPass_changed() {
-			std::cout << this->lowPass.get_active() << std::endl;
-			filterMethod();
+			processImage();
 		}
 		void on_bandStop_changed() {
-			std::cout << this->bandStop.get_active() << std::endl;
-			filterMethod();
+			processImage();
 		}
 
 	public:
@@ -154,12 +143,13 @@ class MainWindow: public Gtk::Window {
 				openNewImage("_Open image", true) //
 		{
 
-			processing = false;
-
 			set_title("OpenCV with GTK and Video");
 			set_border_width(10);
 
+			this->createProcessedImageCanvas(imagePath);
 			this->createOriginalImageCanvas(imagePath);
+			this->createSpectrumImageCanvas();
+			this->createMaskImageCanvas();
 
 			originalFrameScrool.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
 			originalFrameScrool.set_hexpand(true);
@@ -174,8 +164,6 @@ class MainWindow: public Gtk::Window {
 			originalFrame.set_vexpand(true);
 			originalFrame.add(originalFrameScrool);
 
-			this->createProcessedImageCanvas(imagePath);
-
 			processedFrameScrool.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
 			processedFrameScrool.set_hexpand(true);
 			processedFrameScrool.set_vexpand(true);
@@ -189,8 +177,6 @@ class MainWindow: public Gtk::Window {
 			processedFrame.set_vexpand(true);
 			processedFrame.add(processedFrameScrool);
 
-			this->createMaskImageCanvas();
-
 			maskFrameScrool.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
 			maskFrameScrool.set_hexpand(true);
 			maskFrameScrool.set_vexpand(true);
@@ -203,8 +189,6 @@ class MainWindow: public Gtk::Window {
 			maskFrame.set_hexpand(true);
 			maskFrame.set_vexpand(true);
 			maskFrame.add(maskFrameScrool);
-
-			this->createSpectrumImageCanvas();
 
 			spectrumFrameScrool.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
 			spectrumFrameScrool.set_hexpand(true);
@@ -262,36 +246,30 @@ class MainWindow: public Gtk::Window {
 			innerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_innerRadiusAjustments_changed));
 			outerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_outerRadiusAjustments_changed));
 			sigma.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_sigmaAjustments_changed));
-			applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::filterMethod));
+			applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::processImage));
 			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
 
 			this->mainBox.show();
 			add(this->mainBox);
 
+			processImage();
+
 			show_all();
 		}
 
-		void filterMethod() {
-			//cv::cvtColor(originalImageArea->image, processedImageArea->image, cv::COLOR_BGR2GRAY);
+		void processImage() {
 
-			//TODO Start a thread
-			static double currentSigma = sigma.get_value();
+			double sigmaValue = sigma.get_value() <= 1 ? 1 : this->sigma.get_value();
+			double outerRadiusValue = outerRadius.get_value() <= 0 ? 0 : outerRadius.get_value();
+			double innerRadiusValue = innerRadius.get_value() <= 0 ? 0 : innerRadius.get_value();
 
-			if (processing) return;
-			if (sigma.get_value() == 0) return;
+			updateMask(sigmaValue, outerRadiusValue, innerRadiusValue);
+			extractSpectrumAndIDFT();
+			convertForVisualization();
 
-			processing = true;
-			cv::GaussianBlur(processedImageArea->image, processedImageArea->image, cv::Size(currentSigma, currentSigma), 1);
-
-			if (currentSigma != sigma.get_value()) {
-				processing = false;
-				filterMethod();
-			}
-
-			processing = false;
+			maskImageArea->queue_draw();
+			spectrumImageArea->queue_draw();
 			processedImageArea->queue_draw();
-
-			std::cout << "Image processed" << std::endl;
 		}
 
 		MainWindow() :
@@ -397,8 +375,14 @@ class MainWindow: public Gtk::Window {
 					std::string filename = dialog.get_filename();
 					std::cout << "Opening: " << filename << std::endl;
 
-					originalImageArea->image = cv::imread(filename, CV_BGR2RGB);
 					originalImageArea->set_tooltip_text(filename);
+
+					createOriginalImageCanvas(filename.c_str());
+					createProcessedImageCanvas(filename.c_str());
+					createSpectrumImageCanvas();
+					createMaskImageCanvas();
+					processImage();
+
 					originalImageArea->queue_draw();
 					break;
 				}
@@ -413,5 +397,43 @@ class MainWindow: public Gtk::Window {
 			}
 		}
 
+	private:
+		void updateMask(double sigmaValue, double outerRadiusValue, double innerRadiusValue) {
+			if (none.get_active()) {
+				maskImage = createHighLowPassFilter(originalImageArea->image, 0, true, sigmaValue);
+//				maskImage.convertTo(maskImage, CV_32F, 1);
+			}
+			if (lowPass.get_active()) {
+				maskImage = createHighLowPassFilter(originalImageArea->image, outerRadiusValue, false, sigmaValue);
+//				maskImage.convertTo(maskImage, CV_32F, 1);
+			}
+			if (highPass.get_active()) {
+				maskImage = createHighLowPassFilter(originalImageArea->image, outerRadiusValue, true, sigmaValue);
+//				maskImage.convertTo(maskImage, CV_32F, 1);
+			}
+			if (bandPass.get_active()) {
+				maskImage = createBandStopPassFilter(originalImageArea->image, innerRadiusValue, outerRadiusValue, true, sigmaValue);
+//				maskImage.convertTo(maskImage, CV_32F, 1);
+			}
+			if (bandStop.get_active()) {
+				maskImage = createBandStopPassFilter(originalImageArea->image, innerRadiusValue, outerRadiusValue, false, sigmaValue);
+//				maskImage.convertTo(maskImage, CV_32F, 1);
+			}
+		}
+
+		void extractSpectrumAndIDFT() {
+			cv::cvtColor(originalImage, processedImage, cv::COLOR_BGR2GRAY);
+
+			cv::Mat complex = dft2(processedImage);
+			complex = combineDFTComplexAndMask(complex, maskImage);
+			spectrumImage = genSpectrumImage(complex);
+			processedImage = idft2(complex);
+		}
+
+		void convertForVisualization() {
+			maskImage.convertTo(maskImageArea->image, CV_8U, 255);
+			spectrumImage.convertTo(spectrumImageArea->image, CV_8U, 255);
+			processedImage.convertTo(processedImageArea->image, CV_8U, 255);
+		}
 };
 #endif /* SRC_MAINWINDOW_CPP_ */
