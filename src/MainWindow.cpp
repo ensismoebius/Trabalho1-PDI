@@ -10,6 +10,8 @@
 class MainWindow: public Gtk::Window {
 	protected:
 
+		bool processing;
+
 		Gtk::ScrolledWindow originalFrameScrool;
 		Gtk::ScrolledWindow processedFrameScrool;
 		Gtk::ScrolledWindow maskFrameScrool;
@@ -34,7 +36,11 @@ class MainWindow: public Gtk::Window {
 		Gtk::Box horizontalBox3;
 
 		Gtk::Box maskRadiosBox;
-		Gtk::RadioButton nenhum, passaAlta, passaBanda, passaBaixa, paraBanda;
+		Gtk::RadioButton none, highPass, bandPass, lowPass, bandStop;
+
+		Gtk::Label lblinnerRadius;
+		Gtk::Label lblouterRadius;
+		Gtk::Label lblsigma;
 
 		Gtk::Box measuresScalesBox;
 		Glib::RefPtr<Gtk::Adjustment> innerRadiusAjustments;
@@ -87,6 +93,41 @@ class MainWindow: public Gtk::Window {
 			spectrumImageArea->set_tooltip_text("Spectrum");
 		}
 
+		void on_outerRadiusAjustments_changed() {
+			std::cout << this->outerRadius.get_value() << std::endl;
+			filterMethod();
+		}
+		void on_innerRadiusAjustments_changed() {
+			std::cout << this->innerRadius.get_value() << std::endl;
+			filterMethod();
+
+		}
+		void on_sigmaAjustments_changed() {
+			std::cout << this->sigma.get_value() << std::endl;
+			filterMethod();
+		}
+
+		void on_none_changed() {
+			std::cout << this->none.get_active() << std::endl;
+			filterMethod();
+		}
+		void on_highPass_changed() {
+			std::cout << this->highPass.get_active() << std::endl;
+			filterMethod();
+		}
+		void on_bandPass_changed() {
+			std::cout << this->bandPass.get_active() << std::endl;
+			filterMethod();
+		}
+		void on_lowPass_changed() {
+			std::cout << this->lowPass.get_active() << std::endl;
+			filterMethod();
+		}
+		void on_bandStop_changed() {
+			std::cout << this->bandStop.get_active() << std::endl;
+			filterMethod();
+		}
+
 	public:
 		MainWindow(char* imagePath) :
 				mainBox(Gtk::ORIENTATION_VERTICAL, 2), //
@@ -94,11 +135,14 @@ class MainWindow: public Gtk::Window {
 				horizontalBox2(Gtk::ORIENTATION_HORIZONTAL, 2), //
 				horizontalBox3(Gtk::ORIENTATION_HORIZONTAL, 2), //
 				maskRadiosBox(Gtk::ORIENTATION_VERTICAL), //
-				nenhum("_0-Nenhuma", true), //
-				passaAlta("_1-Passa alta", true), //
-				passaBanda("_2-Passa banda", true), //
-				passaBaixa("_3-Passa baixa", true), //
-				paraBanda("_4-Para banda", true), //
+				none("_0-Nenhuma", true), //
+				highPass("_1-Passa alta", true), //
+				bandPass("_2-Passa banda", true), //
+				lowPass("_3-Passa baixa", true), //
+				bandStop("_4-Para banda", true), //
+				lblinnerRadius("Inner Radius"), //
+				lblouterRadius("Outer Radius"), //
+				lblsigma("Blur sigma"), //
 				measuresScalesBox(Gtk::ORIENTATION_VERTICAL), //
 				innerRadiusAjustments(Gtk::Adjustment::create(0, 0, 100)), //
 				innerRadius(innerRadiusAjustments, Gtk::ORIENTATION_HORIZONTAL), //
@@ -109,6 +153,9 @@ class MainWindow: public Gtk::Window {
 				applyFilter("_Apply filter", true), //
 				openNewImage("_Open image", true) //
 		{
+
+			processing = false;
+
 			set_title("OpenCV with GTK and Video");
 			set_border_width(10);
 
@@ -176,36 +223,47 @@ class MainWindow: public Gtk::Window {
 			this->horizontalBox1.add(processedFrame);
 			this->mainBox.add(this->horizontalBox1);
 
-			passaBaixa.join_group(nenhum);
-			passaBanda.join_group(nenhum);
-			paraBanda.join_group(nenhum);
-			passaAlta.join_group(nenhum);
+			lowPass.join_group(none);
+			bandPass.join_group(none);
+			bandStop.join_group(none);
+			highPass.join_group(none);
 
-			maskRadiosBox.pack_start(nenhum, true, true, 0);
-			maskRadiosBox.pack_start(passaAlta, true, true, 0);
-			maskRadiosBox.pack_start(passaBanda, true, true, 0);
-			maskRadiosBox.pack_start(passaBaixa, true, true, 0);
-			maskRadiosBox.pack_start(paraBanda, true, true, 0);
+			maskRadiosBox.pack_start(none, true, true, 0);
+			maskRadiosBox.pack_start(highPass, true, true, 0);
+			maskRadiosBox.pack_start(bandPass, true, true, 0);
+			maskRadiosBox.pack_start(lowPass, true, true, 0);
+			maskRadiosBox.pack_start(bandStop, true, true, 0);
 			this->horizontalBox2.add(maskRadiosBox);
 
 			measuresScalesBox.set_hexpand(true);
+			measuresScalesBox.pack_start(lblinnerRadius, true, true, 0);
 			measuresScalesBox.pack_start(innerRadius, true, true, 0);
+			measuresScalesBox.pack_start(lblouterRadius, true, true, 0);
 			measuresScalesBox.pack_start(outerRadius, true, true, 0);
+			measuresScalesBox.pack_start(lblsigma, true, true, 0);
 			measuresScalesBox.pack_start(sigma, true, true, 0);
 			this->horizontalBox2.add(measuresScalesBox);
 
 			this->horizontalBox2.set_hexpand(true);
-			this->mainBox.add(this->horizontalBox2);
 
 			this->horizontalBox3.add(maskFrame);
 			this->horizontalBox3.add(spectrumFrame);
 			this->mainBox.add(this->horizontalBox3);
+			this->mainBox.add(this->horizontalBox2);
 
 			this->mainBox.add(applyFilter);
 			this->mainBox.add(openNewImage);
 
-			this->applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::filterMethod));
-			this->openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
+			none.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_none_changed));
+			lowPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_lowPass_changed));
+			bandPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandPass_changed));
+			bandStop.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandStop_changed));
+			highPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_highPass_changed));
+			innerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_innerRadiusAjustments_changed));
+			outerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_outerRadiusAjustments_changed));
+			sigma.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_sigmaAjustments_changed));
+			applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::filterMethod));
+			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
 
 			this->mainBox.show();
 			add(this->mainBox);
@@ -214,31 +272,23 @@ class MainWindow: public Gtk::Window {
 		}
 
 		void filterMethod() {
+			//cv::cvtColor(originalImageArea->image, processedImageArea->image, cv::COLOR_BGR2GRAY);
 
-//			static int c = 50;
-//
-//			cv::Vec3b color;
-//			color.val[0] = 0;
-//			color.val[1] = 255;
-//			color.val[2] = 0;
+			//TODO Start a thread
+			static double currentSigma = sigma.get_value();
 
-//			for (int row = 0; row < image->rows; row++) {
-//				for (int col = 0; col < image->cols; col++) {
-//					//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
-//					image->at<cv::Vec3b>(row, col) = color;
-//				}
-//			}
-//			for (int row = 0; row < image->rows; row++) {
-//				for (int col = 0; col < c; col++) {
-//					//cv::Vec3b intensity = image.at<cv::Vec3b>(col, row);
-//					processedImage->at<cv::Vec3b>(row, col) = color;
-//				}
-//			}
-//			c += 2;
-			cv::cvtColor(originalImageArea->image, processedImageArea->image, cv::COLOR_BGR2GRAY);
-			cv::GaussianBlur(processedImageArea->image, processedImageArea->image, cv::Size(0, 0), 1);
-//			cv::medianBlur(*image, *processedImage, 7);
+			if (processing) return;
+			if (sigma.get_value() == 0) return;
 
+			processing = true;
+			cv::GaussianBlur(processedImageArea->image, processedImageArea->image, cv::Size(currentSigma, currentSigma), 1);
+
+			if (currentSigma != sigma.get_value()) {
+				processing = false;
+				filterMethod();
+			}
+
+			processing = false;
 			processedImageArea->queue_draw();
 
 			std::cout << "Image processed" << std::endl;
