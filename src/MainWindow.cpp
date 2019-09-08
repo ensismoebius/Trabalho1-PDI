@@ -60,7 +60,6 @@ class MainWindow: public Gtk::Window {
 			originalImageArea->set_tooltip_text(imagePath);
 
 			originalImage = originalImageArea->image.clone();
-			originalImage.convertTo(originalImage, rtype, alpha, beta)
 		}
 
 		void createProcessedImageCanvas(const char* imagePath = 0) {
