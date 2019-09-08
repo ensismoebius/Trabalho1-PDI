@@ -17,6 +17,7 @@ class ImageCanvas: public Gtk::DrawingArea {
 	public:
 		inline static const unsigned char TYPE_IMAGE = 0;
 		inline static const unsigned char TYPE_VIDEO = 1;
+		inline static const unsigned char TYPE_NONE = 2;
 		cv::Mat image;
 
 	protected:
@@ -58,6 +59,12 @@ class ImageCanvas: public Gtk::DrawingArea {
 			return true;
 		}
 	public:
+
+		ImageCanvas(cv::Mat reference) {
+			this->mediaType = TYPE_NONE;
+			this->image = cv::Mat(reference.rows, reference.cols, reference.type());
+			videoCapturingActive = false;
+		}
 
 		ImageCanvas(char* path, const unsigned char mediaType = TYPE_IMAGE) {
 
