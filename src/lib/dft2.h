@@ -57,6 +57,17 @@ cv::Mat idft2(cv::Mat complex);
 cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true, float gaussiamSigma = 1);
 
 /**
+ * Create a bandStop or bandPass mask for shifted DFT
+ * @param reference - the matrix from witch will be copied the width and height
+ * @param lowerRadius - lower limit of mask
+ * @param upperRadius - upper limit of mask
+ * @param bandPass - true = bandpass, false = bandstop
+ * @param gaussiamSigma
+ * @return
+ */
+cv::Mat createBandStopPassFilter(cv::Mat reference, int lowerRadius, int upperRadius, bool bandPass = true, float gaussiamSigma = 1);
+
+/**
  * Combines a filter with the complex matrix
  * from DFT2 and returns this combination
  * @param complex - the complex matrix

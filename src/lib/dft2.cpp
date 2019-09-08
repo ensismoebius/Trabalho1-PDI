@@ -109,10 +109,11 @@ cv::Mat idft2(cv::Mat complex) {
 }
 
 /**
- * Create a highpass or lowpass filter
+ * Create a highpass or lowpass mask for shifted DFT
  * @param reference - the matrix from witch will be copied the width and height
  * @param radius - The radius of the filter
  * @param highpass - true = highpass, false = lowpass
+ * @param gaussiamSigma
  * @return the filter matrix
  */
 cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = true, float gaussiamSigma = 1) {
@@ -141,6 +142,28 @@ cv::Mat createHighLowPassFilter(cv::Mat reference, int radius, bool highpass = t
 	}
 
 	return mask;
+}
+
+/**
+ * Create a bandStop or bandPass mask for shifted DFT
+ * @param reference - the matrix from witch will be copied the width and height
+ * @param lowerRadius - lower limit of mask
+ * @param upperRadius - upper limit of mask
+ * @param bandPass - true = bandpass, false = bandstop
+ * @param gaussiamSigma
+ * @return
+ */
+cv::Mat createBandStopPassFilter(cv::Mat reference, int lowerRadius, int upperRadius, bool bandPass = true, float gaussiamSigma = 1) {
+
+	if (bandPass) {
+		cv::Mat filterLow1 = createHighLowPassFilter(reference, upperRadius, false, gaussiamSigma);
+		cv::Mat filterLow2 = createHighLowPassFilter(reference, lowerRadius, false, gaussiamSigma);
+		return filterLow1 - filterLow2;
+	} else {
+		cv::Mat filterLow1 = createHighLowPassFilter(reference, lowerRadius, false, gaussiamSigma);
+		cv::Mat filterHigh = createHighLowPassFilter(reference, upperRadius, true, gaussiamSigma);
+		return filterLow1 + filterHigh;
+	}
 }
 
 /**
