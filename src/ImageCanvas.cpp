@@ -13,6 +13,8 @@
 #include <gtkmm-3.0/gtkmm.h>
 #include <opencv2/opencv.hpp>
 
+#include "OneImageView.cpp"
+
 class ImageCanvas: public Gtk::DrawingArea {
 	public:
 		inline static const unsigned char TYPE_IMAGE = 0;
@@ -27,6 +29,13 @@ class ImageCanvas: public Gtk::DrawingArea {
 
 		unsigned char mediaType;
 		bool videoCapturingActive;
+
+//		virtual bool on_button_press_event(GdkEventButton *event) {
+//			if ((event->type == GDK_BUTTON_PRESS) && (event->button == 2)) {
+//				OneImageView v(outputImage);
+//			}
+//			return true;
+//		}
 
 		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cairoContextPtr) {
 

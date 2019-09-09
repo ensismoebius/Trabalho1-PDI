@@ -91,23 +91,23 @@ class MainWindow: public Gtk::Window {
 		}
 		void on_none_changed() {
 			processImage();
-			updateSlidersSensitivity();
+			updateSlidersAndLabelsSensitivity();
 		}
 		void on_highPass_changed() {
 			processImage();
-			updateSlidersSensitivity();
+			updateSlidersAndLabelsSensitivity();
 		}
 		void on_bandPass_changed() {
 			processImage();
-			updateSlidersSensitivity();
+			updateSlidersAndLabelsSensitivity();
 		}
 		void on_lowPass_changed() {
 			processImage();
-			updateSlidersSensitivity();
+			updateSlidersAndLabelsSensitivity();
 		}
 		void on_bandStop_changed() {
 			processImage();
-			updateSlidersSensitivity();
+			updateSlidersAndLabelsSensitivity();
 		}
 
 	public:
@@ -238,14 +238,14 @@ class MainWindow: public Gtk::Window {
 			this->mainBox.show();
 			add(this->mainBox);
 
-			updateSlidersSensitivity();
+			updateSlidersAndLabelsSensitivity();
 			updateSlidersRange();
 			processImage();
 
 			show_all();
 		}
 
-		void updateSlidersSensitivity() {
+		void updateSlidersAndLabelsSensitivity() {
 			if (none.get_active()) {
 				sigma.set_sensitive(false);
 				lblsigma.set_sensitive(false);
@@ -327,10 +327,13 @@ class MainWindow: public Gtk::Window {
 
 		~MainWindow() {
 			delete originalImageArea;
+			delete processedImageArea;
+			delete spectrumImageArea;
+			delete maskImageArea;
 		}
 
 		void chooseImage() {
-			Gtk::FileChooserDialog dialog("Please choose a file", Gtk::FILE_CHOOSER_ACTION_OPEN);
+			Gtk::FileChooserDialog dialog("Please choose a image file", Gtk::FILE_CHOOSER_ACTION_OPEN);
 			dialog.set_transient_for(*this);
 
 			//Add response buttons the the dialog:
