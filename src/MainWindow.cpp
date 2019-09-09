@@ -1,11 +1,14 @@
 #ifndef SRC_MAINWINDOW_CPP_
 #define SRC_MAINWINDOW_CPP_
 
+#include <cmath>
 #include <stdexcept>
 #include <gtkmm-3.0/gtkmm.h>
 #include <opencv2/opencv.hpp>
 
 #include "lib/dft2.h"
+
+#include "Matrices.cpp"
 #include "ImageCanvas.cpp"
 
 class MainWindow: public Gtk::Window {
@@ -20,11 +23,6 @@ class MainWindow: public Gtk::Window {
 		Gtk::Frame processedFrame;
 		Gtk::Frame maskFrame;
 		Gtk::Frame spectrumFrame;
-
-		cv::Mat originalImage;
-		cv::Mat processedImage;
-		cv::Mat spectrumImage;
-		cv::Mat maskImage;
 
 		ImageCanvas* originalImageArea;
 		ImageCanvas* processedImageArea;
@@ -56,17 +54,13 @@ class MainWindow: public Gtk::Window {
 		Gtk::Button openNewImage;
 
 		void createOriginalImageCanvas(const char* imagePath = 0) {
-			originalImageArea = new ImageCanvas(imagePath, ImageCanvas::TYPE_IMAGE);
+			originalImageArea = new ImageCanvas(Matrices::originalImage, ImageCanvas::TYPE_IMAGE);
 			originalImageArea->set_tooltip_text(imagePath);
-
-			originalImage = originalImageArea->image.clone();
 		}
 
-		void createProcessedImageCanvas(const char* imagePath = 0) {
-			processedImageArea = new ImageCanvas(imagePath, ImageCanvas::TYPE_IMAGE);
+		void createProcessedImageCanvas() {
+			processedImageArea = new ImageCanvas(Matrices::processedImage, ImageCanvas::TYPE_IMAGE);
 			processedImageArea->set_tooltip_text("Processed image");
-
-			processedImage = processedImageArea->image.clone();
 		}
 
 		void createMaskImageCanvas() {
@@ -74,10 +68,9 @@ class MainWindow: public Gtk::Window {
 			if (originalImageArea == 0) {
 				throw std::runtime_error("Error at 'createMaskImageCanvas()' method:\n Original image area must be defined first!!");
 			}
-			maskImageArea = new ImageCanvas(originalImageArea->image);
-			maskImageArea->set_tooltip_text("Mask");
 
-			maskImage = maskImageArea->image.clone();
+			maskImageArea = new ImageCanvas(Matrices::maskImage, ImageCanvas::TYPE_IMAGE);
+			maskImageArea->set_tooltip_text("Mask");
 		}
 
 		void createSpectrumImageCanvas() {
@@ -85,10 +78,9 @@ class MainWindow: public Gtk::Window {
 			if (originalImageArea == 0) {
 				throw std::runtime_error("Error at 'createMaskImageCanvas()' method:\n Original image area must be defined first!!");
 			}
-			spectrumImageArea = new ImageCanvas(originalImageArea->image);
-			spectrumImageArea->set_tooltip_text("Spectrum");
 
-			spectrumImage = spectrumImageArea->image.clone();
+			spectrumImageArea = new ImageCanvas(Matrices::spectrumImage, ImageCanvas::TYPE_IMAGE);
+			spectrumImageArea->set_tooltip_text("Spectrum");
 		}
 
 		void on_outerRadiusAjustments_changed() {
@@ -123,11 +115,11 @@ class MainWindow: public Gtk::Window {
 				horizontalBox2(Gtk::ORIENTATION_HORIZONTAL, 2), //
 				horizontalBox3(Gtk::ORIENTATION_HORIZONTAL, 2), //
 				maskRadiosBox(Gtk::ORIENTATION_VERTICAL), //
-				none("_0-Nenhuma", true), //
-				highPass("_1-Passa alta", true), //
-				bandPass("_2-Passa banda", true), //
-				lowPass("_3-Passa baixa", true), //
-				bandStop("_4-Para banda", true), //
+				none("_0-None", true), //
+				highPass("_1-High pass", true), //
+				bandPass("_2-Band pass", true), //
+				lowPass("_3-Low pass", true), //
+				bandStop("_4-Stop band", true), //
 				lblinnerRadius("Inner Radius"), //
 				lblouterRadius("Outer Radius"), //
 				lblsigma("Blur sigma"), //
@@ -145,8 +137,10 @@ class MainWindow: public Gtk::Window {
 			set_title("OpenCV with GTK and Video");
 			set_border_width(10);
 
-			this->createProcessedImageCanvas(imagePath);
+			Matrices::init(imagePath);
+
 			this->createOriginalImageCanvas(imagePath);
+			this->createProcessedImageCanvas();
 			this->createSpectrumImageCanvas();
 			this->createMaskImageCanvas();
 
@@ -158,7 +152,6 @@ class MainWindow: public Gtk::Window {
 			originalFrame.set_label("Image");
 			originalFrame.set_label_align(Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER);
 			originalFrame.set_shadow_type(Gtk::SHADOW_OUT);
-			originalFrame.set_size_request(160, 120);
 			originalFrame.set_hexpand(true);
 			originalFrame.set_vexpand(true);
 			originalFrame.add(originalFrameScrool);
@@ -171,7 +164,6 @@ class MainWindow: public Gtk::Window {
 			processedFrame.set_label("Processed image");
 			processedFrame.set_label_align(Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER);
 			processedFrame.set_shadow_type(Gtk::SHADOW_OUT);
-			processedFrame.set_size_request(160, 120);
 			processedFrame.set_hexpand(true);
 			processedFrame.set_vexpand(true);
 			processedFrame.add(processedFrameScrool);
@@ -184,7 +176,6 @@ class MainWindow: public Gtk::Window {
 			maskFrame.set_label("Mask");
 			maskFrame.set_label_align(Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER);
 			maskFrame.set_shadow_type(Gtk::SHADOW_OUT);
-			maskFrame.set_size_request(160, 120);
 			maskFrame.set_hexpand(true);
 			maskFrame.set_vexpand(true);
 			maskFrame.add(maskFrameScrool);
@@ -197,7 +188,6 @@ class MainWindow: public Gtk::Window {
 			spectrumFrame.set_label("Spectrum");
 			spectrumFrame.set_label_align(Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER);
 			spectrumFrame.set_shadow_type(Gtk::SHADOW_OUT);
-			spectrumFrame.set_size_request(160, 120);
 			spectrumFrame.set_hexpand(true);
 			spectrumFrame.set_vexpand(true);
 			spectrumFrame.add(spectrumFrameScrool);
@@ -238,22 +228,33 @@ class MainWindow: public Gtk::Window {
 			this->mainBox.add(openNewImage);
 
 			none.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_none_changed));
+			applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::processImage));
+			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
 			lowPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_lowPass_changed));
 			bandPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandPass_changed));
 			bandStop.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandStop_changed));
 			highPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_highPass_changed));
+			sigma.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_sigmaAjustments_changed));
 			innerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_innerRadiusAjustments_changed));
 			outerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_outerRadiusAjustments_changed));
-			sigma.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_sigmaAjustments_changed));
-			applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::processImage));
-			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
 
 			this->mainBox.show();
 			add(this->mainBox);
 
+			updateSliders();
 			processImage();
 
 			show_all();
+		}
+
+		void updateSliders() {
+			double maxsize = sqrt(pow(Matrices::complex.cols / 2, 2) + pow(Matrices::complex.rows / 2, 2));
+
+			innerRadiusAjustments.get()->set_upper(maxsize);
+			outerRadiusAjustments.get()->set_upper(maxsize);
+
+			innerRadius.queue_draw();
+			outerRadius.queue_draw();
 		}
 
 		void processImage() {
@@ -268,6 +269,7 @@ class MainWindow: public Gtk::Window {
 
 			maskImageArea->queue_draw();
 			spectrumImageArea->queue_draw();
+			originalImageArea->queue_draw();
 			processedImageArea->queue_draw();
 		}
 
@@ -374,15 +376,10 @@ class MainWindow: public Gtk::Window {
 					std::string filename = dialog.get_filename();
 					std::cout << "Opening: " << filename << std::endl;
 
+					Matrices::init(filename.c_str());
 					originalImageArea->set_tooltip_text(filename);
-
-					createOriginalImageCanvas(filename.c_str());
-					createProcessedImageCanvas(filename.c_str());
-					createSpectrumImageCanvas();
-					createMaskImageCanvas();
+					updateSliders();
 					processImage();
-
-					originalImageArea->queue_draw();
 					break;
 				}
 				case (Gtk::RESPONSE_CANCEL): {
@@ -399,40 +396,54 @@ class MainWindow: public Gtk::Window {
 	private:
 		void updateMask(double sigmaValue, double outerRadiusValue, double innerRadiusValue) {
 			if (none.get_active()) {
-				maskImage = createHighLowPassFilter(originalImageArea->image, 0, true, sigmaValue);
-//				maskImage.convertTo(maskImage, CV_32F, 1);
+				Matrices::maskImage = createHighLowPassFilter(Matrices::complex, 0, true, sigmaValue);
 			}
 			if (lowPass.get_active()) {
-				maskImage = createHighLowPassFilter(originalImageArea->image, outerRadiusValue, false, sigmaValue);
-//				maskImage.convertTo(maskImage, CV_32F, 1);
+				Matrices::maskImage = createHighLowPassFilter(Matrices::complex, outerRadiusValue, false, sigmaValue);
 			}
 			if (highPass.get_active()) {
-				maskImage = createHighLowPassFilter(originalImageArea->image, outerRadiusValue, true, sigmaValue);
-//				maskImage.convertTo(maskImage, CV_32F, 1);
+				Matrices::maskImage = createHighLowPassFilter(Matrices::complex, outerRadiusValue, true, sigmaValue);
 			}
 			if (bandPass.get_active()) {
-				maskImage = createBandStopPassFilter(originalImageArea->image, innerRadiusValue, outerRadiusValue, true, sigmaValue);
-//				maskImage.convertTo(maskImage, CV_32F, 1);
+				Matrices::maskImage = createBandStopPassFilter(Matrices::complex, innerRadiusValue, outerRadiusValue, true, sigmaValue);
 			}
 			if (bandStop.get_active()) {
-				maskImage = createBandStopPassFilter(originalImageArea->image, innerRadiusValue, outerRadiusValue, false, sigmaValue);
-//				maskImage.convertTo(maskImage, CV_32F, 1);
+				Matrices::maskImage = createBandStopPassFilter(Matrices::complex, innerRadiusValue, outerRadiusValue, false, sigmaValue);
 			}
+			// maskImage.convertTo(maskImage, CV_32F, 1);
 		}
 
 		void extractSpectrumAndIDFT() {
-			cv::cvtColor(originalImage, processedImage, cv::COLOR_BGR2GRAY);
+			cv::cvtColor(Matrices::originalImage, Matrices::processedImage, CV_BGR2GRAY);
 
-			cv::Mat complex = dft2(processedImage);
-			complex = combineDFTComplexAndMask(complex, maskImage);
-			spectrumImage = genSpectrumImage(complex);
-			processedImage = idft2(complex);
+			Matrices::complex = dft2(Matrices::processedImage);
+			if (isMaskApplied()) {
+				Matrices::complex = combineDFTComplexAndMask(Matrices::complex, Matrices::maskImage);
+			}
+			Matrices::spectrumImage = genSpectrumImage(Matrices::complex);
+			Matrices::processedImage = idft2(Matrices::complex);
 		}
 
 		void convertForVisualization() {
-			maskImage.convertTo(maskImageArea->image, CV_8U, 255);
-			spectrumImage.convertTo(spectrumImageArea->image, CV_8U, 255);
-			processedImage.convertTo(processedImageArea->image, CV_8U, 255);
+
+			maskImageArea->image = Matrices::maskImage.clone();
+			originalImageArea->image = Matrices::originalImage.clone();
+			spectrumImageArea->image = Matrices::spectrumImage.clone();
+			processedImageArea->image = Matrices::processedImage.clone();
+
+			maskImageArea->image.convertTo(maskImageArea->image, CV_8U, 255);
+			originalImageArea->image.convertTo(originalImageArea->image, CV_8U);
+			spectrumImageArea->image.convertTo(spectrumImageArea->image, CV_8U, 255);
+			processedImageArea->image.convertTo(processedImageArea->image, CV_8U, 255);
 		}
+
+		bool isMaskApplied() {
+			if (highPass.get_active() && outerRadius.get_value() > 0) return true;
+			if (lowPass.get_active() && outerRadius.get_value() > 0) return true;
+			if (bandPass.get_active() && (outerRadius.get_value() > 0 || innerRadius.get_value() > 0)) return true;
+			if (bandStop.get_active() && (outerRadius.get_value() > 0 || innerRadius.get_value() > 0)) return true;
+			return false;
+		}
+
 };
 #endif /* SRC_MAINWINDOW_CPP_ */

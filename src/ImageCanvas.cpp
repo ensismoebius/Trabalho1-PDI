@@ -66,12 +66,12 @@ class ImageCanvas: public Gtk::DrawingArea {
 			videoCapturingActive = false;
 		}
 
-		ImageCanvas(const char* path, const unsigned char mediaType = TYPE_IMAGE) {
+		ImageCanvas(cv::Mat& image, const unsigned char mediaType = TYPE_IMAGE) {
 
 			this->mediaType = mediaType;
 
 			if (mediaType == TYPE_IMAGE) {
-				this->image = cv::imread(path, CV_BGR2RGB);
+				this->image = image;
 				videoCapturingActive = false;
 				return;
 			}
