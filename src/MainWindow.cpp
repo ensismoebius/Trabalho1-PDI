@@ -30,10 +30,8 @@ class MainWindow: public Gtk::Window {
 		ImageCanvas* maskImageArea;
 
 		Gtk::Box mainBox;
-
-		Gtk::Box horizontalBox1;
-		Gtk::Box horizontalBox2;
-		Gtk::Box horizontalBox3;
+		Gtk::Grid gridBox;
+		Gtk::Box horizontalBox;
 
 		Gtk::Box maskRadiosBox;
 		Gtk::RadioButton none, highPass, bandPass, lowPass, bandStop;
@@ -93,26 +91,29 @@ class MainWindow: public Gtk::Window {
 		}
 		void on_none_changed() {
 			processImage();
+			updateSlidersSensitivity();
 		}
 		void on_highPass_changed() {
 			processImage();
+			updateSlidersSensitivity();
 		}
 		void on_bandPass_changed() {
 			processImage();
+			updateSlidersSensitivity();
 		}
 		void on_lowPass_changed() {
 			processImage();
+			updateSlidersSensitivity();
 		}
 		void on_bandStop_changed() {
 			processImage();
+			updateSlidersSensitivity();
 		}
 
 	public:
 		MainWindow(char* imagePath) :
 				mainBox(Gtk::ORIENTATION_VERTICAL, 2), //
-				horizontalBox1(Gtk::ORIENTATION_HORIZONTAL, 2), //
-				horizontalBox2(Gtk::ORIENTATION_HORIZONTAL, 2), //
-				horizontalBox3(Gtk::ORIENTATION_HORIZONTAL, 2), //
+				horizontalBox(Gtk::ORIENTATION_HORIZONTAL, 2), //
 				maskRadiosBox(Gtk::ORIENTATION_VERTICAL), //
 				none("_0-None", true), //
 				highPass("_1-High pass", true), //
@@ -190,9 +191,13 @@ class MainWindow: public Gtk::Window {
 			spectrumFrame.set_vexpand(true);
 			spectrumFrame.add(spectrumFrameScrool);
 
-			this->horizontalBox1.add(originalFrame);
-			this->horizontalBox1.add(processedFrame);
-			this->mainBox.add(this->horizontalBox1);
+			this->gridBox.set_row_homogeneous(true);
+			this->gridBox.set_column_homogeneous(true);
+			this->gridBox.attach(maskFrame, 0, 1, 1, 1);
+			this->gridBox.attach(spectrumFrame, 1, 1, 1, 1);
+			this->gridBox.attach(originalFrame, 0, 0, 1, 1);
+			this->gridBox.attach(processedFrame, 1, 0, 1, 1);
+			this->mainBox.add(this->gridBox);
 
 			lowPass.join_group(none);
 			bandPass.join_group(none);
@@ -204,7 +209,7 @@ class MainWindow: public Gtk::Window {
 			maskRadiosBox.pack_start(bandPass, true, true, 0);
 			maskRadiosBox.pack_start(lowPass, true, true, 0);
 			maskRadiosBox.pack_start(bandStop, true, true, 0);
-			this->horizontalBox2.add(maskRadiosBox);
+			this->horizontalBox.add(maskRadiosBox);
 
 			measuresScalesBox.set_hexpand(true);
 			measuresScalesBox.pack_start(lblinnerRadius, true, true, 0);
@@ -213,14 +218,10 @@ class MainWindow: public Gtk::Window {
 			measuresScalesBox.pack_start(outerRadius, true, true, 0);
 			measuresScalesBox.pack_start(lblsigma, true, true, 0);
 			measuresScalesBox.pack_start(sigma, true, true, 0);
-			this->horizontalBox2.add(measuresScalesBox);
+			this->horizontalBox.set_hexpand(true);
+			this->horizontalBox.add(measuresScalesBox);
 
-			this->horizontalBox2.set_hexpand(true);
-
-			this->horizontalBox3.add(maskFrame);
-			this->horizontalBox3.add(spectrumFrame);
-			this->mainBox.add(this->horizontalBox3);
-			this->mainBox.add(this->horizontalBox2);
+			this->mainBox.add(this->horizontalBox);
 
 			this->mainBox.add(openNewImage);
 
@@ -237,13 +238,50 @@ class MainWindow: public Gtk::Window {
 			this->mainBox.show();
 			add(this->mainBox);
 
-			updateSliders();
+			updateSlidersSensitivity();
+			updateSlidersRange();
 			processImage();
 
 			show_all();
 		}
 
-		void updateSliders() {
+		void updateSlidersSensitivity() {
+			if (none.get_active()) {
+				sigma.set_sensitive(false);
+				lblsigma.set_sensitive(false);
+
+				innerRadius.set_sensitive(false);
+				lblinnerRadius.set_sensitive(false);
+
+				outerRadius.set_sensitive(false);
+				lblouterRadius.set_sensitive(false);
+			}
+
+			if (lowPass.get_active() || highPass.get_active()) {
+				sigma.set_sensitive(true);
+				lblsigma.set_sensitive(true);
+
+				innerRadius.set_sensitive(false);
+				lblinnerRadius.set_sensitive(false);
+
+				outerRadius.set_sensitive(true);
+				lblouterRadius.set_sensitive(true);
+			}
+
+			if (bandPass.get_active() || bandStop.get_active()) {
+				sigma.set_sensitive(true);
+				lblsigma.set_sensitive(true);
+
+				innerRadius.set_sensitive(true);
+				lblinnerRadius.set_sensitive(true);
+
+				outerRadius.set_sensitive(true);
+				lblouterRadius.set_sensitive(true);
+			}
+		}
+
+		void updateSlidersRange() {
+
 			double maxsize = sqrt(pow(Matrices::complex.cols / 2, 2) + pow(Matrices::complex.rows / 2, 2));
 
 			innerRadiusAjustments.get()->set_upper(maxsize);
@@ -374,7 +412,7 @@ class MainWindow: public Gtk::Window {
 
 					Matrices::init(filename.c_str());
 					originalImageArea->set_tooltip_text(filename);
-					updateSliders();
+					updateSlidersRange();
 					processImage();
 					break;
 				}
