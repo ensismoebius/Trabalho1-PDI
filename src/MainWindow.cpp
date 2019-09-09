@@ -50,7 +50,6 @@ class MainWindow: public Gtk::Window {
 		Glib::RefPtr<Gtk::Adjustment> sigmaAjustments;
 		Gtk::Scale sigma;
 
-		Gtk::Button applyFilter;
 		Gtk::Button openNewImage;
 
 		void createOriginalImageCanvas(const char* imagePath = 0) {
@@ -130,7 +129,6 @@ class MainWindow: public Gtk::Window {
 				outerRadius(outerRadiusAjustments, Gtk::ORIENTATION_HORIZONTAL), //
 				sigmaAjustments(Gtk::Adjustment::create(0, 0, 100)), //
 				sigma(sigmaAjustments, Gtk::ORIENTATION_HORIZONTAL), //
-				applyFilter("_Apply filter", true), //
 				openNewImage("_Open image", true) //
 		{
 
@@ -224,11 +222,9 @@ class MainWindow: public Gtk::Window {
 			this->mainBox.add(this->horizontalBox3);
 			this->mainBox.add(this->horizontalBox2);
 
-			this->mainBox.add(applyFilter);
 			this->mainBox.add(openNewImage);
 
 			none.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_none_changed));
-			applyFilter.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::processImage));
 			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
 			lowPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_lowPass_changed));
 			bandPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandPass_changed));
