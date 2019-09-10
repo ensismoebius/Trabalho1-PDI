@@ -152,36 +152,6 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
 	}
 }
 
-//int width = inputData.cols;
-//int height = inputData.rows;
-//
-//// Two outer loops iterate on output data.
-//
-//for (int yWave = 0; yWave < height; yWave++) {
-//
-//	for (int xWave = 0; xWave < width; xWave++) {
-//
-//		// Two inner loops iterate on input data.
-//
-//		for (int ySpace = 0; ySpace < height; ySpace++) {
-//
-//			for (int xSpace = 0; xSpace < width; xSpace++) {
-//
-//				// Compute real, imag, and ampltude.
-//				result.at<cv::Vec2f>(yWave, xWave)[0] += (inputData.at<cv::Vec2f>(ySpace, xSpace)[0] * std::cos(2 * M_PI * ((1.0 * xWave * xSpace / width) + (1.0 * yWave * ySpace / height)))) / width * height;
-//				result.at<cv::Vec2f>(yWave, xWave)[1] -= (inputData.at<cv::Vec2f>(ySpace, xSpace)[1] * std::sin(2 * M_PI * ((1.0 * xWave * xSpace / width) + (1.0 * yWave * ySpace / height)))) / width * height;
-//
-//				//std::cout << result.at<cv::Vec2f>(yWave, xWave)[0] << std::endl;
-//				//std::cout << result.at<cv::Vec2f>(yWave, xWave)[1] << std::endl;
-//
-//				//amplitudeOut[yWave][xWave] = sqrt(	realOut[yWave][xWave] * realOut[yWave][xWave]+ imagOut[yWave][xWave]* imagOut[yWave][xWave]);
-//			}
-//		}
-//
-//	}
-//
-//}
-
 /**
  * Calculate the 2D Discrete Fourier Transform
  * @param input The input
