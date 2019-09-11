@@ -147,6 +147,7 @@ void exercicio4(char* file) {
 void exercio01() {
 	std::vector<double> input = { 1, 2, 0, 1 };
 	std::vector<double> reconstructed;
+	std::vector<double> magnitudes;
 	std::vector<std::array<double, 2>> output;
 
 	showRealVector(input);
@@ -158,6 +159,10 @@ void exercio01() {
 	std::cout << "---------" << std::endl;
 	idft(output, reconstructed);
 	showRealVector(reconstructed);
+
+	std::cout << "---------" << std::endl;
+	calculateMagnitude(output, magnitudes);
+	showRealVector(magnitudes);
 }
 
 int main(int argc, char **argv) {
