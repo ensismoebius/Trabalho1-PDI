@@ -12,6 +12,7 @@
 #include <gtkmm-3.0/gtkmm.h>
 #include <opencv2/opencv.hpp>
 
+#include "lib/dft.h"
 #include "lib/dft2.h"
 #include "lib/noise.h"
 #include "MainWindow.cpp"
@@ -90,19 +91,33 @@ void exercicio4(char* file) {
 	cv::Mat originalNoise(original.rows, original.cols, original.type());
 	originalNoise = addSaltAndPepperNoise(original, 0.05);
 	originalNoise = addGaussianNoise(originalNoise, 5);
+	cv::imshow("uga", originalNoise);
 
-	// compute the DFT results for image with noises
-	cv::Mat complex3 = dft2(originalNoise);
-	cv::Mat spectrumNoise = genSpectrumImage(complex3);
+	// Converts image into an "saveble" format
+	originalNoise.convertTo(originalNoise, CV_8U);
 
-	cv::Mat finalMask = createBandStopPassFilter(complex3, complex3.cols / 16, complex3.cols / 2, true, 1);
+	// Changes file name
+	std::stringstream filename;
+	filename << file << "_noise.png";
 
-	cv::Mat complex2 = combineDFTComplexAndMask(complex3, finalMask);
-	cv::Mat res = idft2(complex2);
+	// Saves image
+	cv::imwrite(filename.str(), originalNoise);
 
-	cv::imshow("final", finalMask);
-	cv::imshow("sssss", res);
+	cv::waitKey(0);
 
+//	// compute the DFT results for image with noises
+//	cv::Mat complex3 = dft2(originalNoise);
+//	cv::Mat spectrumNoise = genSpectrumImage(complex3);
+//
+//	cv::Mat finalMask = createBandStopPassFilter(complex3, complex3.cols / 16, complex3.cols / 2, true, 1);
+//
+//	cv::Mat complex2 = combineDFTComplexAndMask(complex3, finalMask);
+//	cv::Mat res = idft2(complex2);
+//
+//	cv::imshow("finalMask", finalMask);
+//	cv::imshow("result", res);
+//
+//	///////////////////////////////////
 //	// convert images to join them all
 //	spectrum.convertTo(spectrum, CV_32F);
 //	original.convertTo(original, CV_32F);
@@ -127,11 +142,28 @@ void exercicio4(char* file) {
 //	// shows the result
 //	cv::imshow("mix", original);
 	cv::waitKey(0);
+}
 
+void exercio01() {
+	std::vector<double> input = { 1, 2, 0, 1 };
+	std::vector<double> reconstructed;
+	std::vector<std::array<double, 2>> output;
+
+	showRealVector(input);
+	std::cout << "---------" << std::endl;
+
+	dft(input, output);
+	showComplexVector(output);
+
+	std::cout << "---------" << std::endl;
+	idft(output, reconstructed);
+	showRealVector(reconstructed);
 }
 
 int main(int argc, char **argv) {
 
+//	exercio01();
+//
 //	for (int argi = 1; argi < argc; argi++) {
 //		exercicio2(argv[argi]);
 //	}

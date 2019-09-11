@@ -223,10 +223,21 @@ void dft2(cv::Mat input, cv::Mat& result) {
 }
 
 /**
+ * Shows the values of a real vector
+ * @param results The results to be read
+ */
+void showRealVector(const std::vector<double> results) {
+// output the result
+	for (unsigned int n = 0; n < results.size(); ++n) {
+		std::cout << "X" << n << ":\t" << results.at(n) << std::endl;
+	}
+}
+
+/**
  * Shows the results of a DFT
  * @param results The results to be read
  */
-void showDftResults(const std::vector<std::array<double, 2>> results) {
+void showComplexVector(const std::vector<std::array<double, 2>> results) {
 // output the result
 	for (unsigned int n = 0; n < results.size(); ++n) {
 		std::cout << "X" << n << ":\t" << results.at(n)[0] << " " << results.at(n)[1] << std::endl;

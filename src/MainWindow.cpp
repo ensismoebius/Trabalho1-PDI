@@ -451,7 +451,9 @@ class MainWindow: public Gtk::Window {
 		}
 
 		void extractSpectrumAndIDFT() {
-			cv::cvtColor(Matrices::originalImage, Matrices::processedImage, CV_BGR2GRAY);
+//			cv::cvtColor(Matrices::originalImage, Matrices::processedImage, CV_BGR2GRAY);
+
+			Matrices::originalImage.convertTo(Matrices::processedImage, CV_32F);
 
 			Matrices::complex = dft2(Matrices::processedImage);
 			if (isMaskApplied()) {

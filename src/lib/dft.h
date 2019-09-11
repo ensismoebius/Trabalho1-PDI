@@ -53,9 +53,15 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output);
 void dft2(cv::Mat input, cv::Mat& result);
 
 /**
+ * Shows the values of a real vector
+ * @param results The results to be read
+ */
+void showRealVector(const std::vector<double> results);
+
+/**
  * Shows the results of a DFT
  * @param results The results to be read
  */
-void showDftResults(const std::vector<std::array<double, 2> > results);
+void showComplexVector(const std::vector<std::array<double, 2> > results);
 
 #endif /* SRC_LIB_DFT_H_ */
