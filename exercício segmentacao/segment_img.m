@@ -21,7 +21,7 @@ function S= segment_img(input_img, seg_type)
                 img_gradiente= imgradient(input_img);
             %2 - pegar regiões mínimas, tende a pegar realmente só fundos de objetos e fundo, tirando um pouco de ruído
             %internal_markers= imregionalmin(img_gradiente);
-                internal_markers= imextendedmin(input_img, 2); %pega pontos minimos abaixo de um determinado limiar - deixa mais limpo ainda
+                internal_markers= imextendedmin(input_img, 20); %pega pontos minimos abaixo de um determinado limiar - deixa mais limpo ainda
                 img_with_deep_rm_= input_img;    img_with_deep_rm(internal_markers)= 175; %sobrepõe pontos de mínimo na img original
             %3 - pegar regiões mínimas externas -> faço a watershed da distancia dos markers internos
                 external_markers_aux= watershed(bwdist(internal_markers)); %não vai deixar internal_markers se misturarem, criando barreiras

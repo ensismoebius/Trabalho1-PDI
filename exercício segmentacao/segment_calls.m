@@ -4,16 +4,16 @@ figure(1); imshow(img_data); title('Imagem Original');
 img_data = rgb2gray(img_data); 
 
 %generating image with gray squares------------------------------------------------------------------------------
-img_sq= uint8(zeros(256:256));
-color= 100; x=1; y=1;
-for i=1:4
-    for j=1:4
-        img_sq(x:x+63, y:y+63)= color;
-        y= y+64; color= color+10;
+    img_sq= uint8(zeros(256:256));
+    color= 100; x=1; y=1;
+    for i=1:4
+        for j=1:4
+            img_sq(x:x+63, y:y+63)= color;
+            y= y+64; color= color+10;
+        end
+        x= x+64; y=1;
     end
-    x= x+64; y=1;
-end
-figure(2); imshow(img_sq); title('Imagem Original ');
+    figure(2); imshow(img_sq); title('Imagem Original ');
 %----------------------------------------------------------------------------------------------------------------
 
 
@@ -28,3 +28,11 @@ figure(2); imshow(img_sq); title('Imagem Original ');
     figure(5); imshow(IMG_WAT_AUT_MARKERS); title('Imagem Segmentada por Watershed com Marcadores');
 %-----------------------------------------------------------------------------------------------------------------
 
+
+%morphologic operations after segmentation------------------------------------------------------------------------
+    %morphological filter = opening + closing
+    ES= strel('square', 3);
+    IMG_FILTERED= imopen(IMG_OTSU, ES);
+    IMG_FILTERED= imclose(IMG_FILTERED, ES);
+    figure(7); imshow(IMG_FILTERED, []); title('Imagem após Filtro Morfológico (A+F)');
+%-----------------------------------------------------------------------------------------------------------------
