@@ -17,7 +17,7 @@
 #include "lib/noise.h"
 #include "MainWindow.cpp"
 
-void exercicio2(char* file) {
+void exercicio2(char *file) {
 
 	// Reads the image
 	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
@@ -79,7 +79,7 @@ void exercicio2(char* file) {
 	cv::waitKey(0);
 }
 
-void exercicio4(char* file) {
+void exercicio4(char *file) {
 	// Reads the image
 	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
 
@@ -165,6 +165,26 @@ void exercio01() {
 	showRealVector(magnitudes);
 }
 
+/**
+ * Do the Otsu binarization
+ * @param source
+ * @param destin
+ * @see https://docs.opencv.org/ref/master/d7/d4d/tutorial_py_thresholding.html
+ */
+void otsuSegmentation(const cv::Mat &source, const cv::Mat &destin, int gaussianFactor) {
+	cv::GaussianBlur(source, destin, cv::Size(0, 0), gaussianFactor);
+	cv::threshold(destin, destin, 0, 255, cv::THRESH_OTSU);
+	cv::imshow("Otsu", destin);
+	cv::waitKey();
+}
+void exercicio05() {
+
+	cv::Mat source = cv::imread("/home/ensismoebius/workspaces/c-workspace/opencv/img/LF.jpg", 0);
+	cv::Mat destin = cv::Mat::zeros(source.rows, source.cols, 0);
+
+	otsuSegmentation(source, destin, 1);
+}
+
 int main(int argc, char **argv) {
 
 //	exercio01();
@@ -176,6 +196,8 @@ int main(int argc, char **argv) {
 //	for (int argi = 1; argi < argc; argi++) {
 //		exercicio4(argv[argi]);
 //	}
+
+	exercicio05();
 
 	Gtk::Main kit(argc, argv);
 
