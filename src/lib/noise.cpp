@@ -15,10 +15,11 @@
  * @param noiseProbability - Probability of noise
  * @return The matrix with noise
  */
-cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability) {
+cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability, int imgFormat) {
 	int imageChannels = image.channels();
 
 	cv::Mat result = image.clone();
+	result.convertTo(result, CV_8U);
 
 	cv::RNG random(cv::RNG::NORMAL);
 
@@ -35,6 +36,7 @@ cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability) {
 		*pixelValuePtr = random.operator ()(2) > 0 ? 255 : 0;
 	}
 
+	result.convertTo(result, imgFormat);
 	return result;
 }
 

@@ -86,7 +86,8 @@ void exercicio4(char *file) {
 	// adds salt pepper and gaussian noises
 	cv::Mat originalNoise(original.rows, original.cols, original.type());
 
-	originalNoise = addSaltAndPepperNoise(original, 0.05);
+	originalNoise = original.clone();
+	//originalNoise = addSaltAndPepperNoise(original, 0.05);
 	//originalNoise = addGaussianNoise(original, 15);
 
 	// Converts image into an "saveble" format
@@ -94,7 +95,7 @@ void exercicio4(char *file) {
 
 	// Changes file name
 	std::stringstream filename;
-	filename << file << "_pepperSalt.png";
+	filename << file << "_proper.png";
 
 	// Saves image
 	cv::imwrite(filename.str(), originalNoise);
@@ -142,6 +143,7 @@ void exercicio05() {
 }
 
 int main(int argc, char **argv) {
+
 	Gtk::Main kit(argc, argv);
 	MainWindow mwindow(argv[1]);
 	Gtk::Main::run(mwindow);

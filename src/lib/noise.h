@@ -18,7 +18,7 @@
  * @param noiseProbability - Probability of noise
  * @return The matrix with noise
  */
-cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability);
+cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability, int imageFormat);
 
 /**
  * Return a matrix with Gaussian noise

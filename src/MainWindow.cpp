@@ -320,7 +320,7 @@ class MainWindow: public Gtk::Window {
 				Matrices::originalImage = addGaussianNoise(Matrices::originalImage, 15, CV_32F);
 			}
 			if (peppeAndSaltNoise) {
-				Matrices::originalImage = addSaltAndPepperNoise(Matrices::originalImage, 0.05);
+				Matrices::originalImage = addSaltAndPepperNoise(Matrices::originalImage, 0.05, CV_32F);
 			}
 
 			updateMask(sigmaValue, outerRadiusValue, innerRadiusValue);
