@@ -30,7 +30,7 @@ cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability) {
 		int column = random.operator()(image.cols);
 		int channel = random.operator()(imageChannels);
 
-		unsigned char * pixelValuePtr = result.ptr(row) + (column * imageChannels) + channel;
+		unsigned char *pixelValuePtr = result.ptr(row) + (column * imageChannels) + channel;
 
 		*pixelValuePtr = random.operator ()(2) > 0 ? 255 : 0;
 	}
@@ -44,9 +44,11 @@ cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability) {
  * @param sigma - The standard deviation (the more, more noise)
  * @return The matrix with noise
  */
-cv::Mat addGaussianNoise(cv::Mat image, const unsigned char sigma) {
+cv::Mat addGaussianNoise(cv::Mat image, const unsigned char sigma, int imgFormat) {
 
 	cv::Mat result = image.clone();
+	result.convertTo(result, CV_8U);
+
 	cv::RNG generator(cv::RNG::UNIFORM);
 
 	int imageChannels = image.channels();
@@ -54,7 +56,7 @@ cv::Mat addGaussianNoise(cv::Mat image, const unsigned char sigma) {
 	for (int row = 0; row < result.rows; row++) {
 		for (int column = 0; column < result.cols; column++) {
 			for (int channel = 0; channel < imageChannels; channel++) {
-				unsigned char * pixelValuePtr = result.ptr(row) + (column * imageChannels) + channel;
+				unsigned char *pixelValuePtr = result.ptr(row) + (column * imageChannels) + channel;
 
 				long newPixelValue = *pixelValuePtr + generator.gaussian(sigma);
 
@@ -63,5 +65,6 @@ cv::Mat addGaussianNoise(cv::Mat image, const unsigned char sigma) {
 		}
 	}
 
+	result.convertTo(result, imgFormat);
 	return result;
 }

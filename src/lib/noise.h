@@ -26,6 +26,6 @@ cv::Mat addSaltAndPepperNoise(cv::Mat image, const double noiseProbability);
  * @param sigma - The standard deviation (the more, more noise)
  * @return The matrix with noise
  */
-cv::Mat addGaussianNoise(cv::Mat image, const unsigned char sigma);
+cv::Mat addGaussianNoise(cv::Mat image, const unsigned char sigma, int imageFormat);
 
 #endif /* SRC_LIB_NOISE_H_ */

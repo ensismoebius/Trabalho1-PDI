@@ -83,65 +83,21 @@ void exercicio4(char *file) {
 	// Reads the image
 	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
 
-	// compute the DFT results for original image
-	cv::Mat complex = dft2(original);
-	cv::Mat spectrum = genSpectrumImage(complex);
-
 	// adds salt pepper and gaussian noises
 	cv::Mat originalNoise(original.rows, original.cols, original.type());
+
 	originalNoise = addSaltAndPepperNoise(original, 0.05);
-	originalNoise = addGaussianNoise(originalNoise, 5);
-	cv::imshow("uga", originalNoise);
+	//originalNoise = addGaussianNoise(original, 15);
 
 	// Converts image into an "saveble" format
 	originalNoise.convertTo(originalNoise, CV_8U);
 
 	// Changes file name
 	std::stringstream filename;
-	filename << file << "_noise.png";
+	filename << file << "_pepperSalt.png";
 
 	// Saves image
 	cv::imwrite(filename.str(), originalNoise);
-
-	cv::waitKey(0);
-
-//	// compute the DFT results for image with noises
-//	cv::Mat complex3 = dft2(originalNoise);
-//	cv::Mat spectrumNoise = genSpectrumImage(complex3);
-//
-//	cv::Mat finalMask = createBandStopPassFilter(complex3, complex3.cols / 16, complex3.cols / 2, true, 1);
-//
-//	cv::Mat complex2 = combineDFTComplexAndMask(complex3, finalMask);
-//	cv::Mat res = idft2(complex2);
-//
-//	cv::imshow("finalMask", finalMask);
-//	cv::imshow("result", res);
-//
-//	///////////////////////////////////
-//	// convert images to join them all
-//	spectrum.convertTo(spectrum, CV_32F);
-//	original.convertTo(original, CV_32F);
-//	spectrumNoise.convertTo(spectrumNoise, CV_32F);
-//	originalNoise.convertTo(originalNoise, CV_32F);
-//
-//	// equalize all matrix
-//	cv::normalize(spectrum, spectrum, 1, 0, cv::NORM_INF);
-//	cv::normalize(original, original, 1, 0, cv::NORM_INF);
-//	cv::normalize(spectrumNoise, spectrumNoise, 1, 0, cv::NORM_INF);
-//	cv::normalize(originalNoise, originalNoise, 1, 0, cv::NORM_INF);
-//
-//	// creates the first row of the image
-//	cv::hconcat(originalNoise, spectrumNoise, originalNoise);
-//
-//	// creates the second row of the image
-//	cv::hconcat(original, spectrum, original);
-//
-//	// join rows!!
-//	cv::vconcat(original, originalNoise, original);
-//
-//	// shows the result
-//	cv::imshow("mix", original);
-	cv::waitKey(0);
 }
 
 void exercio01() {
@@ -186,23 +142,7 @@ void exercicio05() {
 }
 
 int main(int argc, char **argv) {
-
-//	exercio01();
-//
-//	for (int argi = 1; argi < argc; argi++) {
-//		exercicio2(argv[argi]);
-//	}
-
-//	for (int argi = 1; argi < argc; argi++) {
-//		exercicio4(argv[argi]);
-//	}
-
-	exercicio05();
-
 	Gtk::Main kit(argc, argv);
-
 	MainWindow mwindow(argv[1]);
-
 	Gtk::Main::run(mwindow);
-
 }

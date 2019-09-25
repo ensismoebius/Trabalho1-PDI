@@ -19,7 +19,7 @@ class Matrices {
 		inline static cv::Mat maskImage;
 		inline static cv::Mat complex;
 
-		inline static void init(const char* imagePath = 0) {
+		inline static void init(const char *imagePath = 0) {
 
 			// load original image
 			cv::imread(imagePath, CV_BGR2RGB).copyTo(originalImage);

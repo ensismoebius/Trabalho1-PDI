@@ -63,6 +63,7 @@ cv::Mat dft2(cv::Mat sourceMatrix) {
 	// create a complex matrix
 	cv::Mat complex;
 	cv::merge(planes, 2, complex);
+
 	cv::dft(complex, complex, cv::DFT_COMPLEX_OUTPUT);  // fourier transform
 	return complex;
 }

@@ -11,6 +11,8 @@
 #include "Matrices.cpp"
 #include "ImageCanvas.cpp"
 
+#include "lib/noise.h"
+
 class MainWindow: public Gtk::Window {
 	protected:
 
@@ -24,14 +26,17 @@ class MainWindow: public Gtk::Window {
 		Gtk::Frame maskFrame;
 		Gtk::Frame spectrumFrame;
 
-		ImageCanvas* originalImageArea;
-		ImageCanvas* processedImageArea;
-		ImageCanvas* spectrumImageArea;
-		ImageCanvas* maskImageArea;
+		ImageCanvas *originalImageArea;
+		ImageCanvas *processedImageArea;
+		ImageCanvas *spectrumImageArea;
+		ImageCanvas *maskImageArea;
 
 		Gtk::Box mainBox;
 		Gtk::Grid gridBox;
 		Gtk::Box horizontalBox;
+
+		Gtk::Box effectsBox;
+		Gtk::Button btnAddGaussianNoise, btnAddSaltPepperNoise;
 
 		Gtk::Box maskRadiosBox;
 		Gtk::RadioButton none, highPass, bandPass, lowPass, bandStop;
@@ -50,7 +55,7 @@ class MainWindow: public Gtk::Window {
 
 		Gtk::Button openNewImage;
 
-		void createOriginalImageCanvas(const char* imagePath = 0) {
+		void createOriginalImageCanvas(const char *imagePath = 0) {
 			originalImageArea = new ImageCanvas(Matrices::originalImage, ImageCanvas::TYPE_IMAGE);
 			originalImageArea->set_tooltip_text(imagePath);
 		}
@@ -109,11 +114,19 @@ class MainWindow: public Gtk::Window {
 			processImage();
 			updateSlidersAndLabelsSensitivity();
 		}
-
+		void on_addGaussianNoise() {
+			processImage(false, true, false);
+		}
+		void on_addSaltAndPepperNoise() {
+			processImage(false, false, true);
+		}
 	public:
-		MainWindow(char* imagePath) :
+		MainWindow(char *imagePath) :
 				mainBox(Gtk::ORIENTATION_VERTICAL, 2), //
 				horizontalBox(Gtk::ORIENTATION_HORIZONTAL, 2), //
+				effectsBox(Gtk::ORIENTATION_VERTICAL), //
+				btnAddGaussianNoise("Add _Gaussian noise", true), //
+				btnAddSaltPepperNoise("Add _salt and pepper noise", true), //
 				maskRadiosBox(Gtk::ORIENTATION_VERTICAL), //
 				none("_0-None", true), //
 				highPass("_1-High pass", true), //
@@ -204,6 +217,10 @@ class MainWindow: public Gtk::Window {
 			bandStop.join_group(none);
 			highPass.join_group(none);
 
+			effectsBox.pack_start(btnAddGaussianNoise, true, true, 0);
+			effectsBox.pack_start(btnAddSaltPepperNoise, true, true, 0);
+			this->horizontalBox.add(effectsBox);
+
 			maskRadiosBox.pack_start(none, true, true, 0);
 			maskRadiosBox.pack_start(highPass, true, true, 0);
 			maskRadiosBox.pack_start(bandPass, true, true, 0);
@@ -226,11 +243,13 @@ class MainWindow: public Gtk::Window {
 			this->mainBox.add(openNewImage);
 
 			none.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_none_changed));
-			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
 			lowPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_lowPass_changed));
 			bandPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandPass_changed));
 			bandStop.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_bandStop_changed));
 			highPass.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_highPass_changed));
+			openNewImage.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::chooseImage));
+			btnAddGaussianNoise.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_addGaussianNoise));
+			btnAddSaltPepperNoise.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_addSaltAndPepperNoise));
 			sigma.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_sigmaAjustments_changed));
 			innerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_innerRadiusAjustments_changed));
 			outerRadius.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_outerRadiusAjustments_changed));
@@ -291,11 +310,18 @@ class MainWindow: public Gtk::Window {
 			outerRadius.queue_draw();
 		}
 
-		void processImage() {
+		void processImage(bool fourier = true, bool gaussianNoise = false, bool peppeAndSaltNoise = false) {
 
 			double sigmaValue = sigma.get_value() <= 1 ? 1 : this->sigma.get_value();
 			double outerRadiusValue = outerRadius.get_value() <= 0 ? 0 : outerRadius.get_value();
 			double innerRadiusValue = innerRadius.get_value() <= 0 ? 0 : innerRadius.get_value();
+
+			if (gaussianNoise) {
+				Matrices::originalImage = addGaussianNoise(Matrices::originalImage, 15, CV_32F);
+			}
+			if (peppeAndSaltNoise) {
+				Matrices::originalImage = addSaltAndPepperNoise(Matrices::originalImage, 0.05);
+			}
 
 			updateMask(sigmaValue, outerRadiusValue, innerRadiusValue);
 			extractSpectrumAndIDFT();
