@@ -21,7 +21,7 @@
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The real vector result
  */
-void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
+void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<double> &output) {
 	for (unsigned int n = 0; n < input.size(); ++n) {
 		output.push_back(sqrt(pow(input.at(n)[0], 2) + pow(input.at(n)[1], 2)));
 	}
@@ -33,7 +33,7 @@ void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<do
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The real vector result
  */
-void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
+void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double> &output) {
 	for (unsigned int n = 0; n < input.size(); ++n) {
 		output.push_back(atan(input.at(n)[1] / input.at(n)[0]));
 	}
@@ -44,7 +44,7 @@ void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double>
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The real vector result
  */
-void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output) {
+void idft(std::vector<std::array<double, 2>> input, std::vector<double> &output) {
 	/**
 	 * The index of the current value being untransformed
 	 */
@@ -98,17 +98,17 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double>& output)
  * @param input The input vector
  * @param output A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  */
-void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) {
+void dft(std::vector<double> input, std::vector<std::array<double, 2>> &output) {
 
 	/**
 	 * The index of the current value being transformed
 	 */
-	int k = 0;
+	unsigned int k = 0;
 
 	/**
 	 * The size of the signal
 	 */
-	int N = input.size();
+	unsigned int N = input.size();
 
 	/**
 	 * The current value being transformed
@@ -157,7 +157,7 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>>& output) 
  * @param input The input
  * @param result The output
  */
-void dft2(cv::Mat input, cv::Mat& result) {
+void dft2(cv::Mat input, cv::Mat &result) {
 
 	/**
 	 * Sum of the real parts

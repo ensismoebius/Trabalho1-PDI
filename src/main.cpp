@@ -144,7 +144,8 @@ void exercicio05() {
 
 int main(int argc, char **argv) {
 
-	Gtk::Main kit(argc, argv);
-	MainWindow mwindow(argv[1]);
-	Gtk::Main::run(mwindow);
+//	Gtk::Main kit(argc, argv);
+//	MainWindow mwindow(argv[1]);
+//	Gtk::Main::run(mwindow);
+	exercio01();
 }
