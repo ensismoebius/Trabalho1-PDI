@@ -17,10 +17,11 @@
 #include "lib/noise.h"
 #include "MainWindow.cpp"
 
-void exercicio2(char *file) {
+void exercicio2(char *file)
+{
 
 	// Reads the image
-	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat original = cv::imread(file, cv::IMREAD_GRAYSCALE);
 
 	// compute the DFT results
 	cv::Mat complex = dft2(original);
@@ -79,9 +80,10 @@ void exercicio2(char *file) {
 	cv::waitKey(0);
 }
 
-void exercicio4(char *file) {
+void exercicio4(char *file)
+{
 	// Reads the image
-	cv::Mat original = cv::imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat original = cv::imread(file, cv::IMREAD_GRAYSCALE);
 
 	// adds salt pepper and gaussian noises
 	cv::Mat originalNoise(original.rows, original.cols, original.type());
@@ -101,7 +103,8 @@ void exercicio4(char *file) {
 	cv::imwrite(filename.str(), originalNoise);
 }
 
-void exercio01() {
+void exercio01()
+{
 	std::vector<double> input = { 1, 2, 0, 1 };
 	std::vector<double> reconstructed;
 	std::vector<double> magnitudes;
@@ -128,13 +131,15 @@ void exercio01() {
  * @param destin
  * @see https://docs.opencv.org/ref/master/d7/d4d/tutorial_py_thresholding.html
  */
-void otsuSegmentation(const cv::Mat &source, const cv::Mat &destin, int gaussianFactor) {
+void otsuSegmentation(const cv::Mat &source, const cv::Mat &destin, int gaussianFactor)
+{
 	cv::GaussianBlur(source, destin, cv::Size(0, 0), gaussianFactor);
 	cv::threshold(destin, destin, 0, 255, cv::THRESH_OTSU);
 	cv::imshow("Otsu", destin);
 	cv::waitKey();
 }
-void exercicio05() {
+void exercicio05()
+{
 
 	cv::Mat source = cv::imread("/home/ensismoebius/workspaces/c-workspace/opencv/img/LF.jpg", 0);
 	cv::Mat destin = cv::Mat::zeros(source.rows, source.cols, 0);
@@ -142,10 +147,11 @@ void exercicio05() {
 	otsuSegmentation(source, destin, 1);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
-//	Gtk::Main kit(argc, argv);
-//	MainWindow mwindow(argv[1]);
-//	Gtk::Main::run(mwindow);
-	exercio01();
+	Gtk::Main kit(argc, argv);
+	MainWindow mwindow(argv[1]);
+	Gtk::Main::run(mwindow);
+//	exercio01();
 }

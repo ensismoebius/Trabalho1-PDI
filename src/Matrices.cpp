@@ -10,7 +10,8 @@
 
 #include <opencv2/opencv.hpp>
 
-class Matrices {
+class Matrices
+{
 	public:
 
 		inline static cv::Mat originalImage;
@@ -19,10 +20,11 @@ class Matrices {
 		inline static cv::Mat maskImage;
 		inline static cv::Mat complex;
 
-		inline static void init(const char *imagePath = 0) {
+		inline static void init(const char *imagePath = 0)
+		{
 
 			// load original image
-			cv::imread(imagePath, CV_BGR2RGB).copyTo(originalImage);
+			cv::imread(imagePath, cv::COLOR_BGR2RGB).copyTo(originalImage);
 			originalImage.convertTo(originalImage, CV_32F);
 
 			// create processed image

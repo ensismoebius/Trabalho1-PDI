@@ -13,16 +13,17 @@
 #include <vector>
 #include <iostream>
 
-#include <opencv2/opencv.hpp>
-
+#include <opencv2/imgproc.hpp>
 /**
  * Calculates the magnitude for each sorted pairs resulted
  * from an Discrete Fourier Transformation
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The real vector result
  */
-void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<double> &output) {
-	for (unsigned int n = 0; n < input.size(); ++n) {
+void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<double> &output)
+{
+	for (unsigned int n = 0; n < input.size(); ++n)
+	{
 		output.push_back(sqrt(pow(input.at(n)[0], 2) + pow(input.at(n)[1], 2)));
 	}
 }
@@ -33,8 +34,10 @@ void calculateMagnitude(std::vector<std::array<double, 2>> input, std::vector<do
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The real vector result
  */
-void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double> &output) {
-	for (unsigned int n = 0; n < input.size(); ++n) {
+void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double> &output)
+{
+	for (unsigned int n = 0; n < input.size(); ++n)
+	{
 		output.push_back(atan(input.at(n)[1] / input.at(n)[0]));
 	}
 }
@@ -44,7 +47,8 @@ void calculateFase(std::vector<std::array<double, 2>> input, std::vector<double>
  * @param input A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  * @param output The real vector result
  */
-void idft(std::vector<std::array<double, 2>> input, std::vector<double> &output) {
+void idft(std::vector<std::array<double, 2>> input, std::vector<double> &output)
+{
 	/**
 	 * The index of the current value being untransformed
 	 */
@@ -71,10 +75,12 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double> &output)
 	double sumComplex = 0;
 
 	// For each value of the signal calculate the sums
-	while (k < N) {
+	while (k < N)
+	{
 
 		// Calculate the sums
-		for (unsigned int n = 0; n < input.size(); ++n) {
+		for (unsigned int n = 0; n < input.size(); ++n)
+		{
 			xn = input.at(n);
 
 			sumReal += xn[0] * std::cos((2 * M_PI * k * n) / N);
@@ -98,7 +104,8 @@ void idft(std::vector<std::array<double, 2>> input, std::vector<double> &output)
  * @param input The input vector
  * @param output A vector of sorted pairs, the 1st component is real, the 2nd component is complex
  */
-void dft(std::vector<double> input, std::vector<std::array<double, 2>> &output) {
+void dft(std::vector<double> input, std::vector<std::array<double, 2>> &output)
+{
 
 	/**
 	 * The index of the current value being transformed
@@ -126,10 +133,12 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>> &output) 
 	double sumComplex = 0;
 
 	// For each value of the signal calculate the sums
-	while (k < N) {
+	while (k < N)
+	{
 
 		// Calculate the sums
-		for (unsigned int n = 0; n < N; ++n) {
+		for (unsigned int n = 0; n < N; ++n)
+		{
 			xn = input.at(n);
 
 			sumReal += xn * std::cos((2 * M_PI * k * n) / N);
@@ -157,7 +166,8 @@ void dft(std::vector<double> input, std::vector<std::array<double, 2>> &output) 
  * @param input The input
  * @param result The output
  */
-void dft2(cv::Mat input, cv::Mat &result) {
+void dft2(cv::Mat input, cv::Mat &result)
+{
 
 	/**
 	 * Sum of the real parts
@@ -191,12 +201,16 @@ void dft2(cv::Mat input, cv::Mat &result) {
 	 */
 	int unsigned N = input.cols;
 
-	while (u < M) {
-		while (v < N) {
+	while (u < M)
+	{
+		while (v < N)
+		{
 
 			// Calculate the sums
-			for (unsigned int y = 0; y < M; ++y) {
-				for (unsigned int x = 0; x < N; ++x) {
+			for (unsigned int y = 0; y < M; ++y)
+			{
+				for (unsigned int x = 0; x < N; ++x)
+				{
 
 					double f = (double) input.at<uchar>(y, x);
 
@@ -226,9 +240,11 @@ void dft2(cv::Mat input, cv::Mat &result) {
  * Shows the values of a real vector
  * @param results The results to be read
  */
-void showRealVector(const std::vector<double> results) {
+void showRealVector(const std::vector<double> results)
+{
 // output the result
-	for (unsigned int n = 0; n < results.size(); ++n) {
+	for (unsigned int n = 0; n < results.size(); ++n)
+	{
 		std::cout << "X" << n << ":\t" << results.at(n) << std::endl;
 	}
 }
@@ -237,9 +253,11 @@ void showRealVector(const std::vector<double> results) {
  * Shows the results of a DFT
  * @param results The results to be read
  */
-void showComplexVector(const std::vector<std::array<double, 2>> results) {
+void showComplexVector(const std::vector<std::array<double, 2>> results)
+{
 // output the result
-	for (unsigned int n = 0; n < results.size(); ++n) {
+	for (unsigned int n = 0; n < results.size(); ++n)
+	{
 		std::cout << "X" << n << ":\t" << results.at(n)[0] << " " << results.at(n)[1] << std::endl;
 	}
 }

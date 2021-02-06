@@ -15,7 +15,8 @@
 
 #include "OneImageView.cpp"
 
-class ImageCanvas: public Gtk::DrawingArea {
+class ImageCanvas: public Gtk::DrawingArea
+{
 	public:
 		inline static const unsigned char TYPE_IMAGE = 0;
 		inline static const unsigned char TYPE_VIDEO = 1;
@@ -37,18 +38,22 @@ class ImageCanvas: public Gtk::DrawingArea {
 //			return true;
 //		}
 
-		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cairoContextPtr) {
+		virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cairoContextPtr)
+		{
 
-			if (this->mediaType == TYPE_VIDEO) {
+			if (this->mediaType == TYPE_VIDEO)
+			{
 				if (!videoCapturingActive) return false;
 				cameraCapturer.read(image);
 			}
 
 			if (image.empty()) return false;
 
-			try {
-				cv::cvtColor(image, outputImage, CV_BGR2RGB);
-			} catch (std::exception e) {
+			try
+			{
+				cv::cvtColor(image, outputImage, cv::COLOR_BGR2RGB);
+			} catch (std::exception e)
+			{
 				cv::cvtColor(image, outputImage, cv::COLOR_GRAY2BGR);
 			}
 
@@ -59,9 +64,11 @@ class ImageCanvas: public Gtk::DrawingArea {
 
 			return true;
 		}
-		bool on_timeout() {
+		bool on_timeout()
+		{
 			Glib::RefPtr<Gdk::Window> win = get_window();
-			if (win) {
+			if (win)
+			{
 				Gdk::Rectangle r(0, 0, get_allocation().get_width(), get_allocation().get_height());
 				win->invalidate_rect(r, false);
 			}
@@ -69,28 +76,34 @@ class ImageCanvas: public Gtk::DrawingArea {
 		}
 	public:
 
-		ImageCanvas(cv::Mat reference) {
+		ImageCanvas(cv::Mat reference)
+		{
 			this->mediaType = TYPE_NONE;
 			this->image = cv::Mat(reference.rows, reference.cols, reference.type());
 			videoCapturingActive = false;
 		}
 
-		ImageCanvas(cv::Mat& image, const unsigned char mediaType = TYPE_IMAGE) {
+		ImageCanvas(cv::Mat &image, const unsigned char mediaType = TYPE_IMAGE)
+		{
 
 			this->mediaType = mediaType;
 
-			if (mediaType == TYPE_IMAGE) {
+			if (mediaType == TYPE_IMAGE)
+			{
 				this->image = image;
 				videoCapturingActive = false;
 				return;
 			}
 
-			if (mediaType == TYPE_VIDEO) {
+			if (mediaType == TYPE_VIDEO)
+			{
 				cameraCapturer.open(0);
-				if (cameraCapturer.isOpened() == true) {
+				if (cameraCapturer.isOpened() == true)
+				{
 					videoCapturingActive = true;
 					Glib::signal_timeout().connect(sigc::mem_fun(*this, &ImageCanvas::on_timeout), 50);
-				} else {
+				} else
+				{
 					videoCapturingActive = false;
 				}
 			}
